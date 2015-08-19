@@ -12,6 +12,8 @@ install: crudesaml all
 	cd crudesaml && DESTDIR="$(BUILDDIR)/build" make install
 	mv "$(DESTDIR)/$(DESTDIR)/lib/security" "$(DESTDIR)/lib"
 	rm -rf "$(DESTDIR)/$(shell echo "$(DESTDIR)" | cut -d '/' -f 2)"
+	mkdir -p "$(DESTDIR)/usr/lib/"
+	mv "$(DESTDIR)/lib/sasl2/" "$(DESTDIR)/usr/lib/"
 
 clean:
 	cd crudesaml && make clean || true
