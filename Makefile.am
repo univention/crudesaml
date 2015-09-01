@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS=-I m4
 
 sasllibdir = @cyrus_sasl2_prefix@/lib/sasl2
-securitylibdir = $(DESTDIR)$(libdir)/security
+securitylibdir = $(libdir)/security
 
 sasllib_LTLIBRARIES = libsaml.la
 libsaml_la_SOURCES = cy2_saml.c saml.c plugin_common.c plugin_common.h saml.h
