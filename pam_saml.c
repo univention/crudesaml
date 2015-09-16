@@ -436,7 +436,7 @@ pam_sm_authenticate(pamh, flags, ac, av)
 
 	/* Is it big enough to make sense? */
 	if (strlen(saml_msg) < SAML_MINLEN) {
-		syslog(LOG_ERR, "saml_msg is too small: %d", strlen(saml_msg));
+		syslog(LOG_ERR, "saml_msg is too small: minlength = %d", SAML_MINLEN);
 		return PAM_AUTH_ERR;
 	};
 
