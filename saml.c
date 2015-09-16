@@ -538,6 +538,7 @@ saml_check_all_assertions(ctx, params, userid, saml_msg, flags)
 	   (const xmlChar *)"urn:oasis:names:tc:SAML:2.0:assertion") != 0) {
 		saml_error(params, 0, "wxmlXPathRegisterNs failed");
 		error = ENOMEM;;
+		goto out;
 	}
 
 	if ((xpobj = xmlXPathEvalExpression((const xmlChar *)
