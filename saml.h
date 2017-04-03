@@ -1,4 +1,4 @@
-/* $Id: saml.h,v 1.4 2010/06/05 15:14:41 manu Exp $ */
+/* $Id: saml.h,v 1.5 2011/04/03 05:22:45 manu Exp $ */
 /*
  * Copyright (c) 2009,2011 Emmanuel Dreyfus
  * All rights reserved.

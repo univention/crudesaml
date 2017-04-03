@@ -1,7 +1,7 @@
-# $Id: configure.ac,v 1.9 2010/06/05 15:14:41 manu Exp $ 
+# $Id: configure.ac,v 1.12 2012/11/07 17:03:52 manu Exp $ 
 
 AC_PREREQ([2.63])
-AC_INIT([crudesaml], [1.2], [manu@netbsd.org])
+AC_INIT([crudesaml], [1.3], [manu@netbsd.org])
 AC_CONFIG_SRCDIR([saml.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
@@ -25,7 +25,7 @@ CFLAGS="$CFLAGS $CRUDESAML_CFLAGS"
 LIBS="$LIBS $CRUDESAML_LIBS"
 
 AC_ARG_WITH(sasl2, [  --with-sasl2=prefix           Base installation of Cyrus SASL],
-		   [CFLAGS="$CFLAGS -I${with_sasl2}/include -DWITH_SASL2"; 
+		   [CFLAGS="$CFLAGS -I${with_sasl2}/include -I${with_sasl2}/include/sasl -DWITH_SASL2"; 
 		    LDFLAGS="$LDFLAGS -L${with_sasl2}/lib";
 		    cyrus_sasl2_prefix="${with_sasl2}"])
 AC_ARG_WITH(pam, [  --with-pam=prefix             Base installation of PAM],
