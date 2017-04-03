@@ -32,6 +32,10 @@ AC_ARG_WITH(pam, [  --with-pam=prefix             Base installation of PAM],
 		 [CFLAGS="$CFLAGS -I${with_pam}/include -DWITH_PAM"; 
 		  LDFLAGS="$LDFLAGS -L${with_pam}/lib";
 		  pam_prefix="${with_pam}"])
+AC_ARG_WITH([pamlibdir],
+			AS_HELP_STRING([--with-pamlibdir=DIR], [directory for PAM modules]),
+			[],
+			[with_pamlibdir=/lib/security])
 AC_ARG_WITH(lasso, [  --with-lasso[=prefix]         Base installation of Lasso],
 		   [CFLAGS="$CFLAGS -I${with_lasso}/include"; 
 		    LDFLAGS="$LDFLAGS -L${with_lasso}/lib -llasso"])
@@ -54,5 +58,6 @@ AC_FUNC_MALLOC
 
 AC_SUBST([cyrus_sasl2_prefix])
 AC_SUBST([pam_prefix])
+AC_SUBST([pamlibdir], [$with_pamlibdir])
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
