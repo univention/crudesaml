@@ -541,7 +541,7 @@ pam_sm_chauthtok(pamh, flags, ac, av)
 }
 
 #ifdef PAM_STATIC
-struct pam_module _modstruct = {
+struct pam_module _pam_saml_modstruct = {
 	"pam_saml",
 	pam_sm_authenticate,
 	pam_sm_setcred,
