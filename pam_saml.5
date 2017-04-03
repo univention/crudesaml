@@ -1,5 +1,5 @@
 .\"
-.\" $Id: pam_saml.5,v 1.3 2009/07/11 17:38:37 manu Exp $
+.\" $Id: pam_saml.5,v 1.4 2010/06/05 15:14:41 manu Exp $
 .\"
 .\" Copyright (c) 2009 Emmanuel Dreyfus
 .\" All rights reserved.
@@ -80,6 +80,18 @@ grace delay (in seconds) to work around minor clock skews. Default it
 .B 600 s
 .TP
 .B
+saml_check_assertion_timeframe={0|1}
+When checking assertion time validity, check
+.B Assertion/Conditions@NotOnOrAfter  
+(Default is to check it).
+.TP
+.B
+saml_check_session_timeframe={0|1}
+When checking assertion time validity, check
+.B Assertion/AuthnStatement@SessionNotOnOrAfter  
+(Default is to check it).
+.TP
+.B 
 idp=<path>
 Load SAML metadata for a trusted IdP from 
 .B path .

@@ -1,7 +1,7 @@
-# $Id: configure.ac,v 1.8 2009/12/08 11:19:46 manu Exp $ 
+# $Id: configure.ac,v 1.9 2010/06/05 15:14:41 manu Exp $ 
 
 AC_PREREQ([2.63])
-AC_INIT([crudesaml], [1.0], [manu@netbsd.org])
+AC_INIT([crudesaml], [1.1], [manu@netbsd.org])
 AC_CONFIG_SRCDIR([saml.c])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
@@ -34,24 +34,15 @@ AC_ARG_WITH(pam, [  --with-pam=prefix             Base installation of PAM],
 		  pam_prefix="${with_pam}"])
 AC_ARG_WITH(lasso, [  --with-lasso[=prefix]         Base installation of Lasso],
 		   [CFLAGS="$CFLAGS -I${with_lasso}/include"; 
-		    LDFLAGS="$LDFLAGS -L${with_lasso}/lib"])
-
-# Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h stdlib.h string.h strings.h syslog.h unistd.h sys/cdefs.h])
-
-# Checks for typedefs, structures, and compiler characteristics.
-AC_TYPE_SIZE_T
-AC_HEADER_TIME
+		    LDFLAGS="$LDFLAGS -L${with_lasso}/lib -llasso"])
 
 # Checks for libraries.
 AC_CHECK_LIB([lasso], [lasso_node_new_from_xmlNode])
 AC_CHECK_LIB([xml2], [xmlParseDoc])
 AC_CHECK_LIB([xmlsec1], [xmlSecInit])
 AC_CHECK_LIB([pam], [pam_authenticate])
-AC_CHECK_LIB([sasl2], [sasl_client_init])
+AC_CHECK_LIB([sasl], [sasl_client_init])
 AC_CHECK_LIB([crypto], [BIO_f_base64])
-AC_CHECK_LIB([z], [uncompress])
 
 # Checks for header files.
 AC_CHECK_HEADERS([string.h])
