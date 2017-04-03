@@ -1,0 +1,178 @@
+# $Id: README,v 1.2 2009/12/08 11:19:25 manu Exp $ 
+###########################################################################
+
+		     ======================================
+		          crudesaml installation notes 
+		       $Date: 2009/12/08 11:19:25 $
+		     ======================================
+
+		       Emmanuel Dreyfus <manu@netbsd.org>
+
+Table of contents:  
+==================
+
+ 1 What is crudesaml
+ 2 Building and installating
+ 3 Configuring the backend service
+ 4 Configuring the web server with mod_auth_mellon
+ 5 SSO with squirrelmail
+ 6 SSO to LDAP directories
+
+Run this command to regenerate a table of contents:
+ sed '/^.====/{g;p;};h;d' README
+
+
+ 1 What is crudesaml
+ =========================================
+
+crudesaml is a package featuring a PAM module and a cyrus SASL plugin 
+for validating SAML assertions.
+
+It is intended to solve the problem of a web application that needs to
+use a non web backends such as an IMAP server, a SSH session, or a
+LDAP directory. In the pre-SSO world, web application had the 
+opportunity to just pass login and passwords to backend services.
+crudesaml attempts to fill that hole: the web application can use
+a signed SAML assertion as an authentication ticket. Backend services
+can use pam_saml and cy2_saml to validate the assertion.
+
+
+ 2 Building and installating
+ =========================================
+
+In order to build, this software depends on 
+* Cyrus SASL, which can be obtained from http://asg.web.cmu.edu/sasl/
+* a PAM implementation (OpenPAM, from http://www.openpam.org is known to work)
+* LASSO, a SAML library available from http://lasso.entrouvert.org/
+
+Your web front end will need to send a signed SAML assertion as an 
+authenticated token. You need a server-side software that can do that.
+mod_auth_mellon is an Apache module that implements a SAML 2.0 service
+provider. Starting from version 0.2.4, it has the ability to dump the 
+SAML assertion in the Apache environement. It can be obtained from 
+http://code.google.com/p/modmellon/
+
+For building and installing, run the usual commands:
+  configure && make && make install
+
+You may need to set some configure options in order to specify the 
+base location of your Cyrus SASL, PAM, and lasso library:
+  --with-sasl2=/usr/local
+  --with-pam=/usr/local
+  --with-lasso=/usr/local
+
+
+ 3 Configuring the backend service
+ =================================
+
+Refer to pam_saml(5) and cy2_saml(5) to learn how to configure the PAM
+module and the SAML plugin. For instance, here is a PAM configuration
+to be used in /etc/pam.d/dovecot, in order to enjoy SSO on webmail with
+Dovecot as the IMAP server (The \ are here for the sake of readability, 
+please remove them and have everything on the same line)
+
+auth            sufficient      /usr/local/lib/security/pam_saml.so \
+			grace=600 userid=uid			    \
+			idp=/etc/openssl/certs/idp1.saml	    \
+			idp=/etc/openssl/certs/idp2.saml	    \
+			trusted_sp=https://www.example.net/saml/metadata
+auth            sufficient      /usr/pkg/lib/security/pam_ldap.so   \
+			config=/etc/openldap/ldap.conf
+auth            required        pam_unix.so     no_warn try_first_pass
+
+idp opions specify the metadata files for your IdP. trusted_sp specify
+the providerID for the service provider you trust.
+
+And here is an exemple for /usr/lib/sasl2/slapd.conf, if you want to 
+use a web application that can perform authenticated binds against
+an OpenLDAP directroy using the SAML assertion.
+
+saml_grace: 600
+saml_userid: uid
+saml_idp0: /etc/openssl/certs/idp1.saml
+saml_idp1: /etc/openssl/certs/idp2.saml
+saml_trusted_sp0: https://www.example.net/saml/metadata
+
+
+ 4 Configuring the web server with mod_auth_mellon
+ =================================================
+
+mod_auth_mellon configuration is beyond of the scope of this document. 
+We will just focus on the part to get the SAML assertion dumped:
+
+<Location /webmail>
+    MellonSamlResponseDump On
+</Location>
+
+This will cause the MELLON_SAML_RESPONSE environement variable to 
+be filled with the signed SAML assertion, for any request on /webmail
+If you run PHP code, the assertion can be examined by a command like this:
+
+<?php echo $_SERVER["MELLON_SAML_RESPONSE"]; ?>
+
+If you run a multiuser machine, where several users can install PHP files
+PHP or other server side scripting language, then you must make sure to 
+avoid enabling MellonSamlResponseDump on location where regular users 
+have write access. Otherwise, unprivilegied users will be able to 
+evesdrop on other users SAML assertions, and they may reuse them.
+
+
+ 5 SSO with squirrelmail
+ =======================
+
+A moderate amount of hackery is required to have squirrelmail performing
+SSO using pam_saml. Fortunately,  no change to squirrelmail code is
+required, the code below can just go in squirrelmail configuration file:
+
+        if (isset($_SERVER["MELLON_SAML_RESPONSE"])) {
+                global $onetimepad;
+
+                $saml_data = $_SERVER["MELLON_SAML_RESPONSE"];
+                $bin_data = base64_decode($saml_data);
+                $secretkey = base64_encode(gzcompress($bin_data));
+
+                if (strstr(basename($_SERVER["REQUEST_URI"]),
+                    "login.php") !== FALSE) {
+                        $_POST["login_username"] = $_SERVER["REMOTE_USER"];
+                        $_POST["secretkey"] = $secretkey;
+                        $_POST["js_autodetect_results"] = $hasJS;
+                        $_POST["just_logged_in"] = 1;
+
+                        require_once("../src/redirect.php");
+                        exit;
+                }
+
+                if (!isset($onetimepad) || empty($onetimepad))
+                        sqgetglobalvar('onetimepad', $onetimepad, SQ_SESSION);
+
+                if (!isset($onetimepad) || empty($onetimepad)) {
+                        $onetimepad = OneTimePadCreate(strlen($secretkey));
+                        sqsession_register($onetimepad, 'onetimepad');
+                }
+
+                $key = OneTimePadEncrypt($secretkey, $onetimepad);
+                $_COOKIE["key"] = $key;
+        }
+
+
+ 6 SSO to LDAP directories
+ =========================
+
+If you use PHP in your web front end, you will need to make sure your
+LDAP module (ldap.so) is built with SASL support. Once you have this working,
+here is the code to perform an authenticated bind through cy2_saml:
+
+	$ds = ldap_connect("ldaps://ldap.example.net", 636);
+	ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+        $error = ldap_sasl_bind($ds, NULL,
+				$_SERVER["MELLON_SAML_RESPONSE"],
+				"SAML", NULL, $_SERVER["REMOTE_USER"], 
+				NULL, "none");
+
+Using OpenLDAP as the backend, you will need au authz-regexp to match
+the SASL username to the LDAP user DN. Use the rule below in your
+/etc/ldap/slapd.conf if your uid are unique:
+
+authz-regexp uid=([^,]*),cn=saml,cn=auth
+             ldap:///dc=example,dc=net??sub?(uid=$1)
+
