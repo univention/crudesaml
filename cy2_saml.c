@@ -70,6 +70,8 @@ void
 saml_log(void *params, int pri, const char *fmt, ...)
 {      
 	sasl_server_params_t *sasl_params;
+	char buf[1024], *tmp;
+	int n;
 	va_list ap;
 
 	sasl_params = (sasl_server_params_t *)params;
@@ -86,8 +88,14 @@ saml_log(void *params, int pri, const char *fmt, ...)
 	}
 
 	va_start(ap, fmt);
-	sasl_params->utils->log(sasl_params->utils->conn, 
-				pri, fmt, va_arg(ap, char *));
+	n = vsnprintf(buf, sizeof buf, fmt, ap);
+	if ((n >= sizeof buf) && (tmp = sasl_params->utils->malloc(n + 1))) {
+		vsnprintf(tmp, n + 1, fmt, ap);
+		sasl_params->utils->log(sasl_params->utils->conn, pri, "%s", tmp);
+		sasl_params->utils->free(tmp);
+	} else {
+		sasl_params->utils->log(sasl_params->utils->conn, pri, "%s", buf);
+	}
 	va_end(ap);
 }      
 
@@ -95,13 +103,21 @@ void
 saml_error(void *params, int pri, const char *fmt, ...)
 {      
 	sasl_server_params_t *sasl_params;
+	char buf[1024], *tmp;
+	int n;
 	va_list ap;
 
 	sasl_params = (sasl_server_params_t *)params;
 
 	va_start(ap, fmt);
-	sasl_params->utils->seterror(sasl_params->utils->conn, 
-				     0, fmt, va_arg(ap, char *));
+	n = vsnprintf(buf, sizeof buf, fmt, ap);
+	if ((n >= sizeof buf) && (tmp = sasl_params->utils->malloc(n + 1))) {
+		vsnprintf(tmp, n + 1, fmt, ap);
+		sasl_params->utils->seterror(sasl_params->utils->conn, 0, "%s", tmp);
+		sasl_params->utils->free(tmp);
+	} else {
+		sasl_params->utils->seterror(sasl_params->utils->conn, 0, "%s", buf);
+	}
 	va_end(ap);
 }      
 
