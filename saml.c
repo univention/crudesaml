@@ -1,4 +1,4 @@
-/* $Id: saml.c,v 1.11 2012/11/08 08:36:43 manu Exp $ */
+/* $Id: saml.c,v 1.12 2013/11/27 16:21:22 manu Exp $ */
 
 /*
  * Copyright (c) 2009-2010 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: saml.c,v 1.11 2012/11/08 08:36:43 manu Exp $");
+__RCSID("$Id: saml.c,v 1.12 2013/11/27 16:21:22 manu Exp $");
 #endif
 #endif
 
@@ -102,6 +102,9 @@ saml_check_assertion_uid(ctx, params, lasso_assertion)
 			if (attribute == NULL || attribute->Name == NULL) 
 				continue;
 
+			saml_log(params, LOG_DEBUG,
+				 "assertion contains %s; searching for %s ",
+				 attribute->Name, gctx->uid_attr);
 			if (strcmp(attribute->Name, gctx->uid_attr) != 0)
 				continue;
 
@@ -151,7 +154,11 @@ saml_get_date(date)
 	const char *date;
 {
 	struct tm tm;
-	const char *format = "%Y-%m-%dT%TZ";
+	/*
+	 * semik Shibboleth SP &| IDP uses format 2013-11-27T09:28:30.464Z
+	 * Melon seems to use 2013-11-27T12:14:46Z .. both hopefully in UTC
+	 */
+	const char *format = "%Y-%m-%dT%T";
 
 	if (strptime(date, format, &tm) == NULL)
 		return (time_t)-1;
@@ -188,8 +195,9 @@ saml_check_assertion_dates(ctx, params, lasso_assertion)
 		if ((not_before != NULL) && (*not_before != '\0')) {
 			limit = saml_get_date(not_before);
 			saml_log(params, LOG_DEBUG,
-				 "SAML assertion condition NotBefore = %ld",
-				 limit);
+				 "SAML assertion condition "
+				 "NotBefore = %ld (%s)",
+				 limit, not_before);
 
 			if (limit == (time_t)-1) {
 				saml_error(params, 0, 
@@ -210,9 +218,9 @@ saml_check_assertion_dates(ctx, params, lasso_assertion)
 		if ((not_after != NULL) && (*not_after != '\0')) {
 			limit = saml_get_date(not_after);
 			saml_log(params, LOG_DEBUG,
-				 "SAML assertion condition NotOnOrAfter = %ld",
-				 limit);
-
+				 "SAML assertion condition "
+				 "NotOnOrAfter = %ld (%s)",
+				 limit, not_after);
 
 			if (limit == (time_t)-1) {
 				saml_error(params, 0, "Invalid condition "

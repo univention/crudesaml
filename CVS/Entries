@@ -1,0 +1,24 @@
+/ChangeLog/1.5/Wed Nov 27 16:21:59 2013//Tcrudesaml-1-5
+/Makefile.am/1.8/Wed Nov  7 17:03:52 2012//Tcrudesaml-1-5
+/Makefile.in/1.9/Wed Nov  7 17:08:08 2012//Tcrudesaml-1-5
+/README/1.2/Tue Dec  8 11:19:25 2009//Tcrudesaml-1-5
+/aclocal.m4/1.6/Wed Nov  7 17:08:08 2012//Tcrudesaml-1-5
+/autogen.sh/1.1/Wed Nov  7 17:02:34 2012//Tcrudesaml-1-5
+/config.guess/1.1.1.1/Fri Jun  5 22:59:33 2009//Tcrudesaml-1-5
+/config.h.in/1.5/Sat Jun  5 15:14:41 2010//Tcrudesaml-1-5
+/config.sub/1.1.1.1/Fri Jun  5 22:59:33 2009//Tcrudesaml-1-5
+/configure/1.12/Thu Nov  8 08:36:43 2012//Tcrudesaml-1-5
+/configure.ac/1.13/Thu Nov  8 08:36:43 2012//Tcrudesaml-1-5
+/cy2_saml.5/1.4/Sun Apr  3 05:22:45 2011//Tcrudesaml-1-5
+/cy2_saml.c/1.9/Wed Nov  7 16:21:52 2012//Tcrudesaml-1-5
+/depcomp/1.1.1.1/Fri Jun  5 22:59:33 2009//Tcrudesaml-1-5
+/install-sh/1.1.1.1/Fri Jun  5 22:59:33 2009//Tcrudesaml-1-5
+/ltmain.sh/1.4/Wed Nov  7 17:08:08 2012//Tcrudesaml-1-5
+/missing/1.1.1.1/Fri Jun  5 22:59:33 2009//Tcrudesaml-1-5
+/pam_saml.5/1.4/Sat Jun  5 15:14:41 2010//Tcrudesaml-1-5
+/pam_saml.c/1.9/Wed Nov 27 16:21:21 2013//Tcrudesaml-1-5
+/plugin_common.c/1.1/Wed Nov  7 16:21:52 2012//Tcrudesaml-1-5
+/plugin_common.h/1.1/Wed Nov  7 16:21:52 2012//Tcrudesaml-1-5
+/saml.c/1.12/Wed Nov 27 16:21:22 2013//Tcrudesaml-1-5
+/saml.h/1.5/Sun Apr  3 05:22:45 2011//Tcrudesaml-1-5
+D
