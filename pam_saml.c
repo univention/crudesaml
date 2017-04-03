@@ -1,4 +1,4 @@
-/* $Id: pam_saml.c,v 1.5 2009/07/11 17:38:37 manu Exp $ */
+/* $Id: pam_saml.c,v 1.6 2009/08/02 13:43:32 manu Exp $ */
 
 /*
  * Copyright (c) 2009 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: pam_saml.c,v 1.5 2009/07/11 17:38:37 manu Exp $");
+__RCSID("$Id: pam_saml.c,v 1.6 2009/08/02 13:43:32 manu Exp $");
 #endif
 #endif
 
@@ -59,6 +59,8 @@ __RCSID("$Id: pam_saml.c,v 1.5 2009/07/11 17:38:37 manu Exp $");
 #ifndef PAM_EXTERN
 #define PAM_EXTERN
 #endif
+
+#define GCTX_DATA "CRUDESAML-GCTX"
 
 void
 saml_log(void *param, int pri, const char *fmt, ...)
@@ -125,36 +127,72 @@ saml_retcode(code)
 	return retcode;
 }
 
+static void 
+gctx_cleanup(pamh, data, error)
+	pam_handle_t *pamh;
+	void *data;
+	int error;
+{
+	saml_glob_context_t *gctx = (saml_glob_context_t *)data;
 
-static saml_glob_context_t *gctx = NULL;
+	if (gctx != NULL) {
+		struct saml_trusted_sp *item;
 
-static int
-pam_global_context_init(ac, av)
+		if (gctx->uid_attr != NULL) {
+			free((void *)gctx->uid_attr);
+			gctx->uid_attr = NULL;
+		}
+
+		while ((item = SLIST_FIRST(&gctx->trusted_sp)) != NULL) {
+			SLIST_REMOVE_HEAD(&gctx->trusted_sp, next);
+			free(item);
+		}
+
+		if (gctx->lasso_server != NULL) {
+			lasso_server_destroy(gctx->lasso_server);
+			gctx->lasso_server = NULL;
+		}
+		
+		lasso_shutdown();
+		free(gctx);
+		gctx = NULL;
+	}
+}
+
+static saml_glob_context_t *
+pam_global_context_init(pamh, ac, av)
+	pam_handle_t *pamh;
 	int ac;
 	const char **av;
 {
 	int error;
+	void *data;
+	saml_glob_context_t *gctx;
 	int i;
 	const char *cacert = NULL;
 	const char *uid_attr = "uid";
 
-	if (gctx != NULL)
-		return PAM_SUCCESS;
 
-	if ((gctx = malloc(sizeof(*gctx))) == NULL) {
-		syslog(LOG_ERR, "malloc() failed: %s", strerror(errno));
-		return PAM_SYSTEM_ERR;
+	if (pam_get_data(pamh, GCTX_DATA, &data) == PAM_SUCCESS) {
+		gctx = (saml_glob_context_t *)data;
+		syslog(LOG_ERR, "pam_get_data success, data = %p", data);
+		return gctx;
 	}
-
-	memset(gctx, 0, sizeof(*gctx));
-
+	
 	/*
 	 * Initialize lasso
 	 */
 	if (lasso_init() != 0) {
 		syslog(LOG_ERR, "lasso_init() failed");
-		return PAM_SYSTEM_ERR;
+		return NULL;
 	}
+
+	if ((gctx = malloc(sizeof(*gctx))) == NULL) {
+		syslog(LOG_ERR, "malloc() failed: %s", strerror(errno));
+		return NULL;
+	}
+
+	memset(gctx, 0, sizeof(*gctx));
 
 	SLIST_INIT(&gctx->trusted_sp);
 	gctx->grace = (time_t)600;
@@ -162,7 +200,6 @@ pam_global_context_init(ac, av)
 							  NULL, NULL);
 	if (gctx->lasso_server == NULL) {
 		syslog(LOG_ERR, "lasso_server_new_from_buffers() failed");
-		error =  PAM_SYSTEM_ERR;
 		goto cleanup;
 	}
 
@@ -192,7 +229,6 @@ pam_global_context_init(ac, av)
 			if ((item = malloc(sizeof(*item))) == NULL) {
 				syslog(LOG_ERR,
 				       "malloc() failed: %s", strerror(errno));
-				error = PAM_SYSTEM_ERR;
 				goto cleanup;
 			}
 
@@ -201,7 +237,6 @@ pam_global_context_init(ac, av)
 			if ((item->provider_id = strdup(data)) == NULL) {
 				syslog(LOG_ERR,
 				       "strdup() failed: %s", strerror(errno));
-				error = PAM_SYSTEM_ERR;
 				goto cleanup;
 			}
 
@@ -213,7 +248,6 @@ pam_global_context_init(ac, av)
 				syslog(LOG_ERR,
 				       "Unable to read CA bundle \"%s\"",
 				       cacert);
-				error = PAM_SYSTEM_ERR;
 				goto cleanup;
 			}
 			continue;
@@ -230,7 +264,6 @@ pam_global_context_init(ac, av)
 			syslog(LOG_ERR,
 			       "Unable to read IdP metadata file \"%s\"", 
 			       idp);
-			error = PAM_SYSTEM_ERR;
 			goto cleanup;
 		}
 
@@ -239,7 +272,6 @@ pam_global_context_init(ac, av)
 					      idp, NULL, cacert) != 0) {
 			syslog(LOG_ERR,
 			       "Failed to load metadata from \"%s\"", idp);
-			error = PAM_SYSTEM_ERR;
 			goto cleanup;
 		}
 
@@ -251,33 +283,18 @@ pam_global_context_init(ac, av)
 		goto cleanup;
 	}
 
-	return PAM_SUCCESS;
+	error = pam_set_data(pamh, GCTX_DATA, (void *)gctx, gctx_cleanup);
+	if (error != PAM_SUCCESS) {
+		syslog(LOG_ERR, "pam_set_data() failed: %s", 
+		       pam_strerror(pamh, error));
+		goto cleanup;
+	}
+
+	return gctx;
 
 cleanup:
-	if (gctx != NULL) {
-		struct saml_trusted_sp *item;
-
-		if (gctx->uid_attr != NULL) {
-			free((void *)gctx->uid_attr);
-			gctx->uid_attr = NULL;
-		}
-
-		while ((item = SLIST_FIRST(&gctx->trusted_sp)) != NULL) {
-			SLIST_REMOVE_HEAD(&gctx->trusted_sp, next);
-			free(item);
-		}
-
-		if (gctx->lasso_server != NULL) {
-			lasso_server_destroy(gctx->lasso_server);
-			gctx->lasso_server = NULL;
-		}
-
-		lasso_shutdown();
-		free(gctx);
-		gctx = NULL;
-	}
-	
-	return error;	
+	gctx_cleanup(pamh, &gctx, error);
+	return NULL;
 }
 
 PAM_EXTERN int
@@ -393,11 +410,11 @@ pam_sm_authenticate(pamh, flags, ac, av)
 		return PAM_AUTH_ERR;
 
 	/* We are now committed to check the SAML assertion */
-	if ((error = pam_global_context_init(ac, av)) != PAM_SUCCESS)
-		return error;
-
 	memset(&ctx, 0, sizeof(ctx));
-	ctx.glob_context = gctx;
+	ctx.glob_context = pam_global_context_init(pamh, ac, av);
+	if (ctx.glob_context == NULL)
+		return PAM_SYSTEM_ERR;
+
 	error = saml_check_all_assertions(&ctx, NULL, 
 					  &saml_user, saml_msg,
 					  MAYBE_COMPRESS);
