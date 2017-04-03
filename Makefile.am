@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS=-I m4
+
 sasllibdir = @cyrus_sasl2_prefix@/lib/sasl2
 securitylibdir = $(DESTDIR)$(libdir)/security
 

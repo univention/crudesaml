@@ -1,17 +1,17 @@
 # $Id: configure.ac,v 1.9 2010/06/05 15:14:41 manu Exp $ 
 
 AC_PREREQ([2.63])
-AC_INIT([crudesaml], [1.1], [manu@netbsd.org])
+AC_INIT([crudesaml], [1.2], [manu@netbsd.org])
 AC_CONFIG_SRCDIR([saml.c])
-AM_INIT_AUTOMAKE
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
+
+AM_INIT_AUTOMAKE
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
-
-AM_INIT_AUTOMAKE
 
 AC_ARG_WITH(pkg-config, [  --with-pkg-config=PATH set pkg-config metadata search path.],
             PKG_CONFIG_PATH="${withval}", PKG_CONFIG_PATH="")
