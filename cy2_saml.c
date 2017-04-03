@@ -1,4 +1,4 @@
-/* $Id: cy2_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $ */
+/* $Id: cy2_saml.c,v 1.9 2012/11/07 16:21:52 manu Exp $ */
 
 /*
  * Copyright (c) 2009,2011 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: cy2_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $");
+__RCSID("$Id: cy2_saml.c,v 1.9 2012/11/07 16:21:52 manu Exp $");
 #endif
 #endif
 
@@ -56,18 +56,7 @@ __RCSID("$Id: cy2_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $");
 
 #include "saml.h"
 
-int _plug_get_simple(const sasl_utils_t *, unsigned int, int,
-		     const char **, sasl_interact_t **);
-int _plug_get_password(const sasl_utils_t *, sasl_secret_t **,
-		       unsigned int *, sasl_interact_t **);
-int _plug_make_prompts(const sasl_utils_t *, sasl_interact_t **,
-		       const char *, const char *, const char *, const char *,
-		       const char *, const char *, const char *, const char *, 
-		       const char *, const char *, const char *, const char *);
-int _plug_buf_alloc(const sasl_utils_t *, char **, 
-		    unsigned int *, unsigned int);
-void _plug_free_secret(const sasl_utils_t *, sasl_secret_t **);
-int _plug_strdup(const sasl_utils_t *, const char *, char **, int *);
+#include "plugin_common.h"
 
 
 typedef struct {
