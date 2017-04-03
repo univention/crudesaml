@@ -1,4 +1,4 @@
-/* $Id: saml.c,v 1.9 2010/06/05 15:14:41 manu Exp $ */
+/* $Id: saml.c,v 1.10 2012/11/07 16:21:52 manu Exp $ */
 
 /*
  * Copyright (c) 2009-2010 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: saml.c,v 1.9 2010/06/05 15:14:41 manu Exp $");
+__RCSID("$Id: saml.c,v 1.10 2012/11/07 16:21:52 manu Exp $");
 #endif
 #endif
 
@@ -50,6 +50,7 @@ __RCSID("$Id: saml.c,v 1.9 2010/06/05 15:14:41 manu Exp $");
 #include <zlib.h>
 #include <sys/stat.h>
 #include <sys/queue.h>
+#include <time.h>
 
 #include <sasl/saslutil.h>	/* XXX for sasl_decode64 */
 
@@ -69,9 +70,6 @@ __RCSID("$Id: saml.c,v 1.9 2010/06/05 15:14:41 manu Exp $");
 #include <lasso/xml/misc_text_node.h>
 
 #include "saml.h"
-
-/* XXX private */
-int lasso_provider_verify_saml_signature(LassoProvider *, xmlNode *, xmlDoc *);
 
 static int
 saml_check_assertion_uid(ctx, params, lasso_assertion)
@@ -145,6 +143,8 @@ out:
 	return 0;
 
 }
+
+extern char *strptime(const char *s, const char *format, struct tm *tm);
 
 static time_t
 saml_get_date(date)
@@ -470,7 +470,7 @@ saml_check_all_assertions(ctx, params, userid, saml_msg, flags)
 	char *saml_msg;
 	int flags;
 {
-	size_t len;
+        unsigned int len;
 	int error;
 	unsigned char saml_msg_copy[65536];
 	unsigned long dlen;
