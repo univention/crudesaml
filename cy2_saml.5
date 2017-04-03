@@ -1,0 +1,111 @@
+.\"
+.\" $Id: cy2_saml.5,v 1.2 2009/07/11 16:00:32 manu Exp $
+.\"
+.\" Copyright (c) 2009 Emmanuel Dreyfus
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"        This product includes software developed by Emmanuel Dreyfus
+.\"
+.\" THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+.\" WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+.\" DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+.\" INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+.\" (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+.\" SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+.\" STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+.\" OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH cy2_sasl 5
+.SH NAME
+cy2_saml \- Crude SAML assertion verification plugin for SASL
+.SH DESCRIPTION
+The
+.B cy2_saml
+is a Simple Authentication Security Layer (SASL) plugin which will validate 
+authentication based on a Security Assertion Markup Language (SAML) 
+authentication assertion. This allows a web server to use the
+SAML assertion as some kind of ticket for getting authenticated access
+to some other resource which is protected by SASL.
+.LP
+Of course this authentication scheme is rather clumsy, as the whole 
+security collapse if any valid SAML assertion is known to an attacker.
+Encrypted communications between client and web server are advised, and 
+.B cy2_saml
+also attempts to thwart the most obvious replay attacks, by performing
+a few checks on the data available in the SAML assertion. The verification
+performed are:
+.LP
+.TP
+Identity provider (IdP) signature validity. This prevents an attacker 
+from forging a SAML assertion.
+.TP
+Date validity, with a grace period for gracefully handling clock skews.
+This revents replays using a very old assertion that has been disclosed.
+.TP
+Optionnaly, the IdP-specified assertion audience can be restricted to a
+set of Service Providers (SP). This prevents an attacker from using an
+assertion collected on an other weak SP that does not use encrypted 
+communications with the client.
+.SH SASL CONFIGURATION
+Configuration is done in the service configuration file. The following
+options are available:
+.LP
+.TP 
+.B
+saml_userid=<uid_attribute>
+Check the value of the
+.B uid_attribute
+attribute in the SAML assertion against the authenticating user login.
+Default is 
+.B uid
+.TP
+.B 
+saml_grace=<time>
+When checking assertion time validity, use a 
+.B time
+grace delay (in seconds) to work around minor clock skews. Default it
+.B 600 s
+.TP
+.B
+saml_idp=<path>
+Load SAML metadata for a trusted IdP from 
+.B path .
+This option can be used multiple times, to use several IdP. This option
+is mandatory, otherwise no assrertion will be validated at all.
+.TP
+.B
+saml_cacert=<path>
+Use the certificates from
+.B path
+as the certificate authorities. This option cannot be used multiple times,
+but the certificate file can contain multiple certificates.
+.TP
+.B
+saml_trusted_sp=<provider_id>
+In order to be validated, the assertion must have its audience set to 
+.B provider_id .
+This is optional and can be specified multiple times. If the option is
+not specifie, the audience is not checked.
+cified multiple times.
+.SH AUTHOR
+Emmanuel Dreyfus <manu@netbsd.org>
+.SH SEE ALSO
+.BR sasl (8)
+
+
+
+
+
