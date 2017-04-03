@@ -1,4 +1,4 @@
-/* $Id: pam_saml.c,v 1.6 2009/08/02 13:43:32 manu Exp $ */
+/* $Id: pam_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $ */
 
 /*
  * Copyright (c) 2009 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: pam_saml.c,v 1.6 2009/08/02 13:43:32 manu Exp $");
+__RCSID("$Id: pam_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $");
 #endif
 #endif
 
@@ -178,7 +178,7 @@ pam_global_context_init(pamh, ac, av)
 		syslog(LOG_ERR, "pam_get_data success, data = %p", data);
 		return gctx;
 	}
-	
+
 	/*
 	 * Initialize lasso
 	 */
@@ -193,6 +193,8 @@ pam_global_context_init(pamh, ac, av)
 	}
 
 	memset(gctx, 0, sizeof(*gctx));
+
+	gctx->flags = SGC_DEFAULT_FLAGS;
 
 	SLIST_INIT(&gctx->trusted_sp);
 	gctx->grace = (time_t)600;
@@ -220,6 +222,24 @@ pam_global_context_init(pamh, ac, av)
 
 		if ((data = SETARG(av[i], "grace")) != NULL) {
 			gctx->grace = atoi(data);
+			continue;
+		}
+
+		if ((data = SETARG(av[i], 
+				   "check_assertion_timeframe")) != NULL) {
+			if (atoi(data))
+				gctx->flags |= SGC_CHECK_ASSERTION_TIMEFRAME;
+			else
+				gctx->flags &= ~SGC_CHECK_ASSERTION_TIMEFRAME;
+			continue;
+		}
+
+		if ((data = SETARG(av[i], 
+				   "check_session_timeframe")) != NULL) {
+			if (atoi(data))
+				gctx->flags |= SGC_CHECK_SESSION_TIMEFRAME;
+			else
+				gctx->flags &= ~SGC_CHECK_SESSION_TIMEFRAME;
 			continue;
 		}
 

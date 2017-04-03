@@ -1,4 +1,4 @@
-/* $Id: cy2_saml.c,v 1.6 2009/07/11 16:12:12 manu Exp $ */
+/* $Id: cy2_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $ */
 
 /*
  * Copyright (c) 2009 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: cy2_saml.c,v 1.6 2009/07/11 16:12:12 manu Exp $");
+__RCSID("$Id: cy2_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $");
 #endif
 #endif
 
@@ -394,6 +394,7 @@ sasl_server_plug_init(utils, maxvers, outvers, pluglist, plugcount)
 	const char *cacert;
 	const char *idp;
 	const char *grace;
+	const char *flag;
 	char propname[1024];
 	int propnum = 0;
 
@@ -412,6 +413,8 @@ sasl_server_plug_init(utils, maxvers, outvers, pluglist, plugcount)
 	}
 
 	gctx = (saml_glob_context_t *)saml_server_plugin.glob_context;
+
+	gctx->flags = SGC_DEFAULT_FLAGS;
 
 	gctx->lasso_server = lasso_server_new_from_buffers(NULL, NULL, 
 							   NULL, NULL);
@@ -439,6 +442,29 @@ sasl_server_plug_init(utils, maxvers, outvers, pluglist, plugcount)
 		gctx->grace = (time_t)600;
 	else
 		gctx->grace = atoi(grace);
+
+	/*
+	 * Validation options
+	 */
+	if (((utils->getopt(utils->getopt_context, "SAML", 
+	    		    "saml_check_assertion_timeframe", 
+			    &flag, NULL)) == 0) &&
+	     (flag != NULL) && (*flag != '\0')) {
+		if (atoi(flag))
+			gctx->flags |= SGC_CHECK_ASSERTION_TIMEFRAME;
+		else
+			gctx->flags &= ~SGC_CHECK_ASSERTION_TIMEFRAME;
+	}
+
+	if (((utils->getopt(utils->getopt_context, "SAML", 
+	    		    "saml_check_session_timeframe", 
+			    &flag, NULL)) == 0) &&
+	     (flag != NULL) && (*flag != '\0')) {
+		if (atoi(flag))
+			gctx->flags |= SGC_CHECK_SESSION_TIMEFRAME;
+		else
+			gctx->flags &= ~SGC_CHECK_SESSION_TIMEFRAME;
+	}
 		
 
 	/*

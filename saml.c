@@ -1,7 +1,7 @@
-/* $Id: saml.c,v 1.8 2009/07/11 16:12:12 manu Exp $ */
+/* $Id: saml.c,v 1.9 2010/06/05 15:14:41 manu Exp $ */
 
 /*
- * Copyright (c) 2009 Emmanuel Dreyfus
+ * Copyright (c) 2009-2010 Emmanuel Dreyfus
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: saml.c,v 1.8 2009/07/11 16:12:12 manu Exp $");
+__RCSID("$Id: saml.c,v 1.9 2010/06/05 15:14:41 manu Exp $");
 #endif
 #endif
 
@@ -175,6 +175,9 @@ saml_check_assertion_dates(ctx, params, lasso_assertion)
 	(void)gmtime_r(&now, &now_tm);
 	(void)strftime(now_str, sizeof(now_str), "%Y-%m-%dT%TZ", &now_tm);
 
+	if (!(ctx->glob_context->flags & SGC_CHECK_ASSERTION_TIMEFRAME))
+		goto skip_assertion_timeframe_check;
+
 	if (lasso_assertion->Conditions != NULL) {
 		char *not_before = NULL;
 		char *not_after = NULL;
@@ -226,6 +229,10 @@ saml_check_assertion_dates(ctx, params, lasso_assertion)
 			}
 		}
 	}
+skip_assertion_timeframe_check:
+
+	if (!(ctx->glob_context->flags & SGC_CHECK_SESSION_TIMEFRAME))
+		goto skip_session_timeframe_check;
 
 	for(i = lasso_assertion->AuthnStatement;
 	    i != NULL;
@@ -286,6 +293,7 @@ saml_check_assertion_dates(ctx, params, lasso_assertion)
 		}
 	}
 
+skip_session_timeframe_check:
 	return 0;
 }
 

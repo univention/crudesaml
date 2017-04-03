@@ -1,4 +1,4 @@
-/* $Id: saml.h,v 1.3 2009/07/11 16:00:32 manu Exp $ */
+/* $Id: saml.h,v 1.4 2010/06/05 15:14:41 manu Exp $ */
 /*
  * Copyright (c) 2009 Emmanuel Dreyfus
  * All rights reserved.
@@ -40,8 +40,14 @@ typedef struct {
         LassoServer *lasso_server;
         const char *uid_attr;
         time_t grace;
+	int flags;
 	SLIST_HEAD(saml_trusted_sp_head, saml_trusted_sp) trusted_sp;
 } saml_glob_context_t;
+
+/* saml_glob_context_t flags */
+#define SGC_CHECK_ASSERTION_TIMEFRAME	0x1
+#define SGC_CHECK_SESSION_TIMEFRAME	0x2
+#define SGC_DEFAULT_FLAGS 		0x3 /* check assertion and session */
 
 typedef struct {
         saml_glob_context_t *glob_context;
