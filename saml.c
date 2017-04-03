@@ -1,4 +1,4 @@
-/* $Id: saml.c,v 1.10 2012/11/07 16:21:52 manu Exp $ */
+/* $Id: saml.c,v 1.11 2012/11/08 08:36:43 manu Exp $ */
 
 /*
  * Copyright (c) 2009-2010 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: saml.c,v 1.10 2012/11/07 16:21:52 manu Exp $");
+__RCSID("$Id: saml.c,v 1.11 2012/11/08 08:36:43 manu Exp $");
 #endif
 #endif
 
@@ -173,7 +173,7 @@ saml_check_assertion_dates(ctx, params, lasso_assertion)
 
 	now = time(NULL);
 	(void)gmtime_r(&now, &now_tm);
-	(void)strftime(now_str, sizeof(now_str), "%Y-%m-%dT%TZ", &now_tm);
+	(void)strftime(now_str, sizeof(now_str), "%Y-%m-%dT%H:%M:%SZ", &now_tm);
 
 	if (!(ctx->glob_context->flags & SGC_CHECK_ASSERTION_TIMEFRAME))
 		goto skip_assertion_timeframe_check;
@@ -508,9 +508,10 @@ saml_check_all_assertions(ctx, params, userid, saml_msg, flags)
 	 */
 	dlen = sizeof(saml_msg_copy) - 2;
 	if ((flags & MAYBE_COMPRESS) &&
-	    (uncompress(saml_msg_copy, &dlen, saml_msg, len + 1) == Z_OK)) {
+	    (uncompress(saml_msg_copy, &dlen, (unsigned char *)saml_msg,
+			len + 1) == Z_OK)) {
 		saml_msg_copy[dlen] = '\0';
-		saml_msg = saml_msg_copy;
+		saml_msg = (char *)saml_msg_copy;
 	}
 	
 	if ((doc = xmlParseDoc((const xmlChar *)saml_msg)) == NULL) {

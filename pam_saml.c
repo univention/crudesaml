@@ -1,4 +1,4 @@
-/* $Id: pam_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $ */
+/* $Id: pam_saml.c,v 1.8 2012/11/08 08:36:43 manu Exp $ */
 
 /*
  * Copyright (c) 2009 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: pam_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $");
+__RCSID("$Id: pam_saml.c,v 1.8 2012/11/08 08:36:43 manu Exp $");
 #endif
 #endif
 
@@ -166,7 +166,7 @@ pam_global_context_init(pamh, ac, av)
 	const char **av;
 {
 	int error;
-	void *data;
+	const void *data;
 	saml_glob_context_t *gctx;
 	int i;
 	const char *cacert = NULL;
@@ -202,6 +202,7 @@ pam_global_context_init(pamh, ac, av)
 							  NULL, NULL);
 	if (gctx->lasso_server == NULL) {
 		syslog(LOG_ERR, "lasso_server_new_from_buffers() failed");
+		error = PAM_SERVICE_ERR;
 		goto cleanup;
 	}
 
@@ -247,6 +248,7 @@ pam_global_context_init(pamh, ac, av)
 			struct saml_trusted_sp *item;
 
 			if ((item = malloc(sizeof(*item))) == NULL) {
+				error = PAM_SYSTEM_ERR;
 				syslog(LOG_ERR,
 				       "malloc() failed: %s", strerror(errno));
 				goto cleanup;
@@ -255,6 +257,7 @@ pam_global_context_init(pamh, ac, av)
 			SLIST_INSERT_HEAD(&gctx->trusted_sp, item, next);
 
 			if ((item->provider_id = strdup(data)) == NULL) {
+				error = PAM_SYSTEM_ERR;
 				syslog(LOG_ERR,
 				       "strdup() failed: %s", strerror(errno));
 				goto cleanup;
@@ -265,6 +268,7 @@ pam_global_context_init(pamh, ac, av)
 
 		if ((cacert = SETARG(av[i], "cacert")) != NULL) {
 			if (access(cacert, R_OK) != 0) {
+				error = PAM_OPEN_ERR;
 				syslog(LOG_ERR,
 				       "Unable to read CA bundle \"%s\"",
 				       cacert);
@@ -281,6 +285,7 @@ pam_global_context_init(pamh, ac, av)
 			continue;
 
 		if (access(idp, R_OK) != 0) {
+			error = PAM_OPEN_ERR;
 			syslog(LOG_ERR,
 			       "Unable to read IdP metadata file \"%s\"", 
 			       idp);
@@ -290,6 +295,7 @@ pam_global_context_init(pamh, ac, av)
 		if (lasso_server_add_provider(gctx->lasso_server,
 					      LASSO_PROVIDER_ROLE_IDP,
 					      idp, NULL, cacert) != 0) {
+			error = PAM_SERVICE_ERR;
 			syslog(LOG_ERR,
 			       "Failed to load metadata from \"%s\"", idp);
 			goto cleanup;
@@ -299,6 +305,7 @@ pam_global_context_init(pamh, ac, av)
 	}
 
 	if ((gctx->uid_attr = strdup(uid_attr)) == NULL) {
+		error = PAM_SYSTEM_ERR;
 		syslog(LOG_ERR, "strdup failed: %s", strerror(errno));
 		goto cleanup;
 	}
@@ -329,14 +336,13 @@ pam_sm_authenticate(pamh, flags, ac, av)
 	struct passwd pwres;
 	char pwbuf[1024];
 	const char *user;
-	const char *host;
+	const void *host;
 	const char *saml_user;
-	char *saml_msg;
+	const void *saml_msg;
 	int error;
 
 	/* Check host, and skip SAML check if it is listed  */
-	if (pam_get_item(pamh, PAM_RHOST, 
-			 (const void **)&host) == PAM_SUCCESS) {
+	if (pam_get_item(pamh, PAM_RHOST, &host) == PAM_SUCCESS) {
 		int i;
 
 		for (i = 0; i < ac; i++) {
@@ -385,8 +391,8 @@ pam_sm_authenticate(pamh, flags, ac, av)
 	if (pwd == NULL)
 		syslog(LOG_WARNING, "inexistant user %s", user);
 
-	if ((error = pam_get_item(pamh, PAM_AUTHTOK, 
-				  (const void **)&saml_msg)) != PAM_SUCCESS) {
+	error = pam_get_item(pamh, PAM_AUTHTOK, &saml_msg);
+	if (error != PAM_SUCCESS) {
 		syslog(LOG_ERR, "pam_get_item(PAM_AUTHTOK) failed: %s",
 		       pam_strerror(pamh, error));
 		return error;
@@ -396,14 +402,17 @@ pam_sm_authenticate(pamh, flags, ac, av)
 		struct pam_message msg;
 		struct pam_message *msgp;
 		struct pam_response *resp;
-		struct pam_conv *conv;
+		const void *convptr;
+		const struct pam_conv *conv;
 
-		if ((error = pam_get_item(pamh, PAM_CONV, 
-		    (const void **) &conv)) != PAM_SUCCESS) {
+		error = pam_get_item(pamh, PAM_CONV, &convptr);
+		if (error != PAM_SUCCESS) {
 			syslog(LOG_ERR, "pam_get_item(PAM_CONV) failed: %s",
 			       pam_strerror(pamh, error));
 			return error;
 		}
+
+		conv = convptr;
 
 		msg.msg_style = PAM_PROMPT_ECHO_OFF;
 		msg.msg = "SAML message: ";
@@ -436,7 +445,7 @@ pam_sm_authenticate(pamh, flags, ac, av)
 		return PAM_SYSTEM_ERR;
 
 	error = saml_check_all_assertions(&ctx, NULL, 
-					  &saml_user, saml_msg,
+					  &saml_user, (char *)saml_msg,
 					  MAYBE_COMPRESS);
 
 	if ((error != 0) || (saml_user == NULL)) {
