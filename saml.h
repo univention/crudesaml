@@ -1,6 +1,6 @@
 /* $Id: saml.h,v 1.4 2010/06/05 15:14:41 manu Exp $ */
 /*
- * Copyright (c) 2009 Emmanuel Dreyfus
+ * Copyright (c) 2009,2011 Emmanuel Dreyfus
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ typedef struct {
 /* saml_glob_context_t flags */
 #define SGC_CHECK_ASSERTION_TIMEFRAME	0x1
 #define SGC_CHECK_SESSION_TIMEFRAME	0x2
+#define SGC_COMPRESSED_ASSERTION	0x4
 #define SGC_DEFAULT_FLAGS 		0x3 /* check assertion and session */
 
 typedef struct {

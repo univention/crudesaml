@@ -1,7 +1,7 @@
 /* $Id: cy2_saml.c,v 1.7 2010/06/05 15:14:41 manu Exp $ */
 
 /*
- * Copyright (c) 2009 Emmanuel Dreyfus
+ * Copyright (c) 2009,2011 Emmanuel Dreyfus
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -203,6 +203,7 @@ saml_server_mech_step(conn_context, params, clientin, clientinlen,
 	char *saml_msg = NULL;
 	unsigned int saml_len;
 	unsigned int lup = 0;
+	int flags; 
 	int error;
 
 	/* Sanity checks */
@@ -224,7 +225,8 @@ saml_server_mech_step(conn_context, params, clientin, clientinlen,
 	/* Limit */
 	if (clientinlen > 65536) {
 		params->utils->seterror(params->utils->conn, 0, 
-				        "client data too big (%d)", clientinlen);
+				        "client data too big (%d)",
+					clientinlen);
 		return SASL_BADPROT;
 	}
 
@@ -266,8 +268,9 @@ saml_server_mech_step(conn_context, params, clientin, clientinlen,
 	/*
 	 * Validate SAML assertion, retreive authid
 	 */
+        flags = (gctx->flags & SGC_COMPRESSED_ASSERTION) ? MAYBE_COMPRESS : 0;
 	if ((error = saml_check_all_assertions(ctx, params, 
-	    &userid, saml_msg, 0)) != SASL_OK)
+	    &userid, saml_msg, flags)) != SASL_OK)
 		goto out;
 
 	if (userid == NULL) {
@@ -425,6 +428,19 @@ sasl_server_plug_init(utils, maxvers, outvers, pluglist, plugcount)
 	}
 
 	/*
+	 * Shall we attempt to uncompress assertion?
+	 */
+	if (((utils->getopt(utils->getopt_context, "SAML", 
+	    		    "saml_compressed_assertion", 
+			    &flag, NULL)) == 0) &&
+	     (flag != NULL) && (*flag != '\0')) {
+		if (atoi(flag))
+			gctx->flags |= SGC_COMPRESSED_ASSERTION;
+		else
+			gctx->flags &= ~SGC_COMPRESSED_ASSERTION;
+	}
+
+	/*
 	 * Attribute to be used for userid
 	 */
 	if (((utils->getopt(utils->getopt_context, "SAML", 
@@ -523,7 +539,8 @@ sasl_server_plug_init(utils, maxvers, outvers, pluglist, plugcount)
 
 		if (access(idp, R_OK) != 0) {
 			utils->log(NULL, SASL_LOG_ERR,
-				   "Unable to read IdP metadata file \"%s\"", idp); 
+				   "Unable to read IdP metadata file \"%s\"",
+				   idp); 
 			continue;
 		}
 
@@ -535,7 +552,8 @@ sasl_server_plug_init(utils, maxvers, outvers, pluglist, plugcount)
 			continue;
 		}
 
-		utils->log(NULL, SASL_LOG_NOTE, "Loaded metadata from \"%s\"", idp);
+		utils->log(NULL, SASL_LOG_NOTE, 
+			   "Loaded metadata from \"%s\"", idp);
 	} while (1 /*CONSTCOND*/);
 
 	return SASL_OK;
@@ -591,12 +609,14 @@ saml_client_mech_step(conn_context, params, serverin, serverinlen,
 	    (clientout == NULL) ||
 	    (clientoutlen == NULL) ||
 	    (oparams == NULL)) {
-		params->utils->seterror(params->utils->conn, 0, "Bad parameters");
+		params->utils->seterror(params->utils->conn,
+					0, "Bad parameters");
 		return SASL_BADPARAM;
 	}
 
 	if (serverinlen != 0) {
-		params->utils->seterror(params->utils->conn, 0, "Bad protocol");
+		params->utils->seterror(params->utils->conn,
+					0, "Bad protocol");
 		return SASL_BADPROT;
 	}
 
@@ -658,11 +678,11 @@ saml_client_mech_step(conn_context, params, serverin, serverinlen,
 			goto out;
 
 	if (user != NULL && *user != '\0') {
-		result = params->canon_user(params->utils->conn, user, 0,
-					    SASL_CU_AUTHZID, oparams);
+		result = params->canon_user(params->utils->conn, user, 
+					    0, SASL_CU_AUTHZID, oparams);
 	} else {
-		result = params->canon_user(params->utils->conn, "anonymous", 0,
-					    SASL_CU_AUTHZID, oparams);
+		result = params->canon_user(params->utils->conn, "anonymous",
+					    0, SASL_CU_AUTHZID, oparams);
 	}
 
 	if (result != SASL_OK)	
