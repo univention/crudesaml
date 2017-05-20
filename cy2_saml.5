@@ -1,5 +1,5 @@
 .\"
-.\" $Id: cy2_saml.5,v 1.4 2011/04/03 05:22:45 manu Exp $
+.\" $Id: cy2_saml.5,v 1.6 2015/09/01 11:35:43 manu Exp $
 .\"
 .\" Copyright (c) 2009,2011 Emmanuel Dreyfus
 .\" All rights reserved.
@@ -53,7 +53,7 @@ Identity provider (IdP) signature validity. This prevents an attacker
 from forging a SAML assertion.
 .TP
 Date validity, with a grace period for gracefully handling clock skews.
-This revents replays using a very old assertion that has been disclosed.
+This prevents replays using a very old assertion that has been disclosed.
 .TP
 Optionnaly, the IdP-specified assertion audience can be restricted to a
 set of Service Providers (SP). This prevents an attacker from using an
@@ -67,9 +67,9 @@ options are available:
 .B
 saml_compressed_assertion={0|1}
 When decoding the SAML assertion, try to uncompress it (default is not
-to try). This is only usefull if the client is not the SASL plugin.
+to try). This is only useful if the client is not the SASL plugin.
 .TP
-saml_userid=<uid_attribute>
+.B saml_userid=<uid_attribute>
 Check the value of the
 .B uid_attribute
 attribute in the SAML assertion against the authenticating user login.
@@ -81,7 +81,7 @@ saml_grace=<time>
 When checking assertion time validity, use a 
 .B time
 grace delay (in seconds) to work around minor clock skews. Default it
-.B 600 s
+.B 600\fRs.
 .TP
 .B 
 saml_check_assertion_timeframe={0|1}
@@ -96,11 +96,17 @@ When checking assertion time validity, check
 (Default is to check it).
 .TP
 .B
-saml_idp=<path>
+saml_idp<number>=<path>
 Load SAML metadata for a trusted IdP from 
-.B path .
-This option can be used multiple times, to use several IdP. This option
-is mandatory, otherwise no assrertion will be validated at all.
+.B path\fR.
+This option can be used multiple times with 
+.B number
+being a unique serial number starting at 0 (ie: use 
+.B saml_idp0\fR,
+.B saml_idp1\fR,
+.B saml_idp2\fR,
+etc), to use several IdP. This option
+is mandatory, otherwise no assertion will be validated at all.
 .TP
 .B
 saml_cacert=<path>
@@ -112,14 +118,14 @@ but the certificate file can contain multiple certificates.
 .B
 saml_trusted_sp=<provider_id>
 In order to be validated, the assertion must have its audience set to 
-.B provider_id .
+.B provider_id\fR.
 This is optional and can be specified multiple times. If the option is
-not specifie, the audience is not checked.
-cified multiple times.
+not specified, the audience is not checked.
 .SH AUTHOR
 Emmanuel Dreyfus <manu@netbsd.org>
 .SH SEE ALSO
-.BR sasl (8)
+.BR sasl (8)\fR,
+.BR pam_saml (5)
 
 
 

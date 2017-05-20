@@ -1,4 +1,4 @@
-/* $Id: pam_saml.c,v 1.9 2013/11/27 16:21:21 manu Exp $ */
+/* $Id: pam_saml.c,v 1.13 2017/05/18 15:29:04 manu Exp $ */
 
 /*
  * Copyright (c) 2009 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: pam_saml.c,v 1.9 2013/11/27 16:21:21 manu Exp $");
+__RCSID("$Id: pam_saml.c,v 1.13 2017/05/18 15:29:04 manu Exp $");
 #endif
 #endif
 
@@ -63,7 +63,7 @@ __RCSID("$Id: pam_saml.c,v 1.9 2013/11/27 16:21:21 manu Exp $");
 #define GCTX_DATA "CRUDESAML-GCTX"
 
 void
-saml_log(void *param, int pri, const char *fmt, ...)
+saml_log(const void *utils, int pri, const char *fmt, ...)
 {
 	va_list ap;
 	
@@ -73,7 +73,7 @@ saml_log(void *param, int pri, const char *fmt, ...)
 }
 
 void
-saml_error(void *param, int pri, const char *fmt, ...)
+saml_error(const void *utils, int pri, const char *fmt, ...)
 {
 	va_list ap;
 	
@@ -86,8 +86,8 @@ saml_error(void *param, int pri, const char *fmt, ...)
 }
 
 int
-saml_strdup(params, src, dst, len)
-	void *params;
+saml_strdup(utils, src, dst, len)
+	const void *utils;
 	const char *src;
 	char **dst;
 	int *len;
@@ -278,6 +278,7 @@ pam_global_context_init(pamh, ac, av)
 		}
 	}
 
+	int num_of_idps = 0;
 	for (i = 0; i < ac; i++) {
 		const char *idp;
 
@@ -285,11 +286,10 @@ pam_global_context_init(pamh, ac, av)
 			continue;
 
 		if (access(idp, R_OK) != 0) {
-			error = PAM_OPEN_ERR;
 			syslog(LOG_ERR,
 			       "Unable to read IdP metadata file \"%s\"", 
 			       idp);
-			goto cleanup;
+			continue;
 		}
 
 		if (lasso_server_add_provider(gctx->lasso_server,
@@ -300,8 +300,12 @@ pam_global_context_init(pamh, ac, av)
 			       "Failed to load metadata from \"%s\"", idp);
 			goto cleanup;
 		}
-
+		num_of_idps++;
 		syslog(LOG_DEBUG, "Loaded metadata from \"%s\"", idp);
+	}
+	if (!num_of_idps) {
+		error = PAM_OPEN_ERR;
+		goto cleanup;
 	}
 
 	if ((gctx->uid_attr = strdup(uid_attr)) == NULL) {
@@ -436,7 +440,8 @@ pam_sm_authenticate(pamh, flags, ac, av)
 
 	/* Is it big enough to make sense? */
 	if (strlen(saml_msg) < SAML_MINLEN) {
-		syslog(LOG_ERR, "saml_msg is too small: %d", strlen(saml_msg));
+		syslog(LOG_ERR, "saml_msg is too small: minlength = %d",
+		       SAML_MINLEN);
 		return PAM_AUTH_ERR;
 	};
 
@@ -537,7 +542,7 @@ pam_sm_chauthtok(pamh, flags, ac, av)
 }
 
 #ifdef PAM_STATIC
-struct pam_module _modstruct = {
+struct pam_module _pam_saml_modstruct = {
 	"pam_saml",
 	pam_sm_authenticate,
 	pam_sm_setcred,

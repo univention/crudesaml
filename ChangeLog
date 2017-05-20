@@ -1,3 +1,16 @@
+crusdesaml-1.6		2017-05-20
+Typos in man pages (Florian Best)
+Don't log the password length if it is too small (Florian Best)
+Stop if wxmlXPathRegisterNs failed (Florian Best)
+autoconf: Remove duplicate $(DESTDIR) (Florian Best)
+PAM: Require only one provider (Florian Best)
+PAM: No SONAME versioning (Philipp Hahn)
+autoconf: Only strictness foreign (Philipp Hahn)
+PAM: fix static PAM module build (Philipp Hahn)
+Hide internal symbols (Philipp Hahn)
+Fix varadic function SIGSEGV (Philipp Hahn)
+Fix crash when sing saml_log()/saml_error() in SASL client plugin
+
 crusdesaml-1.5		2012-11-13
 mod_shib2 compatibility, debug messages (Jan Tomasek)
 

@@ -1,12 +1,12 @@
-# $Id: configure.ac,v 1.13 2012/11/08 08:36:43 manu Exp $ 
+# $Id: configure.ac,v 1.15 2017/05/20 02:35:26 manu Exp $ 
 
 AC_PREREQ([2.63])
-AC_INIT([crudesaml], [1.4], [manu@netbsd.org])
+AC_INIT([crudesaml], [1.6], [manu@netbsd.org])
 AC_CONFIG_SRCDIR([saml.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 
 # Checks for programs.
 AC_PROG_CC

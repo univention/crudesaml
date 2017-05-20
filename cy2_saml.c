@@ -1,4 +1,4 @@
-/* $Id: cy2_saml.c,v 1.9 2012/11/07 16:21:52 manu Exp $ */
+/* $Id: cy2_saml.c,v 1.11 2017/05/20 02:27:58 manu Exp $ */
 
 /*
  * Copyright (c) 2009,2011 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: cy2_saml.c,v 1.9 2012/11/07 16:21:52 manu Exp $");
+__RCSID("$Id: cy2_saml.c,v 1.11 2017/05/20 02:27:58 manu Exp $");
 #endif
 #endif
 
@@ -67,12 +67,13 @@ typedef struct {
 static saml_glob_context_t server_glob_context;
 
 void
-saml_log(void *params, int pri, const char *fmt, ...)
+saml_log(const void *utils, int pri, const char *fmt, ...)
 {      
-	sasl_server_params_t *sasl_params;
+	sasl_utils_t *sasl_utils;
+	char msg[4096];
 	va_list ap;
 
-	sasl_params = (sasl_server_params_t *)params;
+	sasl_utils = (sasl_utils_t *)utils;
 	switch (pri) {
 	case LOG_DEBUG:
 		pri = SASL_LOG_DEBUG;
@@ -86,36 +87,37 @@ saml_log(void *params, int pri, const char *fmt, ...)
 	}
 
 	va_start(ap, fmt);
-	sasl_params->utils->log(sasl_params->utils->conn, 
-				pri, fmt, va_arg(ap, char *));
+	vsnprintf(msg, sizeof(msg), fmt, ap);
+	sasl_utils->log(sasl_utils->conn, pri, msg);
 	va_end(ap);
 }      
 
 void
-saml_error(void *params, int pri, const char *fmt, ...)
+saml_error(const void *utils, int pri, const char *fmt, ...)
 {      
-	sasl_server_params_t *sasl_params;
+	sasl_utils_t *sasl_utils;
+	char msg[4096];
 	va_list ap;
 
-	sasl_params = (sasl_server_params_t *)params;
+	sasl_utils = (sasl_utils_t *)utils;
 
 	va_start(ap, fmt);
-	sasl_params->utils->seterror(sasl_params->utils->conn, 
-				     0, fmt, va_arg(ap, char *));
+	vsnprintf(msg, sizeof(msg), fmt, ap);
+	sasl_utils->seterror(sasl_utils->conn, 0, msg);
 	va_end(ap);
 }      
 
 int
-saml_strdup(params, src, dst, len)
-	void *params;
+saml_strdup(utils, src, dst, len)
+	const void *utils;
 	const char *src;
 	char **dst;
 	int *len;
 {
-	sasl_server_params_t *sasl_params;
+	sasl_utils_t *sasl_utils;
 
-	sasl_params = (sasl_server_params_t *)params;
-	return _plug_strdup(sasl_params->utils, src, dst, len);
+	sasl_utils = (sasl_utils_t *)utils;
+	return _plug_strdup(sasl_utils, src, dst, len);
 }
 
 int
