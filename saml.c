@@ -394,7 +394,7 @@ saml_check_assertion_signature(ctx, params, node, issuer, doc)
 			break;
 		node = node->parent;
 
-	} while ((node != node->parent) && (node != NULL));
+	} while ((node != node->parent) && (node != NULL) && (node->name != NULL));
 
 	saml_error(params, 0, "SAML assertion signature verification "
 		   "failure (error %d)", error);
