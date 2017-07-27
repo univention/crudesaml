@@ -143,7 +143,8 @@ gctx_cleanup(pamh, data, error)
 			gctx->uid_attr = NULL;
 		}
 
-		while ((item = SLIST_FIRST(&gctx->trusted_sp)) != NULL) {
+		while (!SLIST_EMPTY(&gctx->trusted_sp)) {
+			item = SLIST_FIRST(&gctx->trusted_sp);
 			SLIST_REMOVE_HEAD(&gctx->trusted_sp, next);
 			free(item);
 		}
