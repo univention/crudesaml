@@ -324,7 +324,7 @@ pam_global_context_init(pamh, ac, av)
 	return gctx;
 
 cleanup:
-	gctx_cleanup(pamh, &gctx, error);
+	gctx_cleanup(pamh, gctx, error);
 	return NULL;
 }
 
