@@ -278,7 +278,6 @@ pam_global_context_init(pamh, ac, av)
 		}
 	}
 
-	int num_of_idps = 0;
 	for (i = 0; i < ac; i++) {
 		const char *idp;
 
@@ -286,10 +285,11 @@ pam_global_context_init(pamh, ac, av)
 			continue;
 
 		if (access(idp, R_OK) != 0) {
+			error = PAM_OPEN_ERR;
 			syslog(LOG_ERR,
 			       "Unable to read IdP metadata file \"%s\"", 
 			       idp);
-			continue;
+			goto cleanup;
 		}
 
 		if (lasso_server_add_provider(gctx->lasso_server,
@@ -300,12 +300,8 @@ pam_global_context_init(pamh, ac, av)
 			       "Failed to load metadata from \"%s\"", idp);
 			goto cleanup;
 		}
-		num_of_idps++;
+
 		syslog(LOG_DEBUG, "Loaded metadata from \"%s\"", idp);
-	}
-	if (!num_of_idps) {
-		error = PAM_OPEN_ERR;
-		goto cleanup;
 	}
 
 	if ((gctx->uid_attr = strdup(uid_attr)) == NULL) {
