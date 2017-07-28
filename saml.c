@@ -1,4 +1,4 @@
-/* $Id: saml.c,v 1.12 2013/11/27 16:21:22 manu Exp $ */
+/* $Id: saml.c,v 1.14 2017/05/18 15:29:04 manu Exp $ */
 
 /*
  * Copyright (c) 2009-2010 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: saml.c,v 1.12 2013/11/27 16:21:22 manu Exp $");
+__RCSID("$Id: saml.c,v 1.14 2017/05/18 15:29:04 manu Exp $");
 #endif
 #endif
 
@@ -72,9 +72,9 @@ __RCSID("$Id: saml.c,v 1.12 2013/11/27 16:21:22 manu Exp $");
 #include "saml.h"
 
 static int
-saml_check_assertion_uid(ctx, params, lasso_assertion)
+saml_check_assertion_uid(ctx, utils, lasso_assertion)
 	saml_serv_context_t *ctx;
-	void *params;
+	void *utils;
 	LassoSaml2Assertion *lasso_assertion;
 {
 	saml_glob_context_t *gctx = ctx->glob_context;
@@ -102,7 +102,7 @@ saml_check_assertion_uid(ctx, params, lasso_assertion)
 			if (attribute == NULL || attribute->Name == NULL) 
 				continue;
 
-			saml_log(params, LOG_DEBUG,
+			saml_log(utils, LOG_DEBUG,
 				 "assertion contains %s; searching for %s ",
 				 attribute->Name, gctx->uid_attr);
 			if (strcmp(attribute->Name, gctx->uid_attr) != 0)
@@ -135,12 +135,12 @@ saml_check_assertion_uid(ctx, params, lasso_assertion)
 	
 out:
 	if (found == NULL) {
-		saml_error(params, 0,
+		saml_error(utils, 0,
 			   "assertion contains no %s", gctx->uid_attr);
 		return EACCES;
 	}
 
-	if ((error = saml_strdup(params, found, &ctx->userid, NULL)) != 0) 
+	if ((error = saml_strdup(utils, found, &ctx->userid, NULL)) != 0) 
 		return error;
 
 	return 0;
@@ -167,9 +167,9 @@ saml_get_date(date)
 }
 
 static int
-saml_check_assertion_dates(ctx, params, lasso_assertion)
+saml_check_assertion_dates(ctx, utils, lasso_assertion)
 	saml_serv_context_t *ctx;
-	void *params;
+	void *utils;
 	LassoSaml2Assertion *lasso_assertion;
 {
 	time_t limit, now;
@@ -194,20 +194,20 @@ saml_check_assertion_dates(ctx, params, lasso_assertion)
 		
 		if ((not_before != NULL) && (*not_before != '\0')) {
 			limit = saml_get_date(not_before);
-			saml_log(params, LOG_DEBUG,
+			saml_log(utils, LOG_DEBUG,
 				 "SAML assertion condition "
 				 "NotBefore = %ld (%s)",
 				 limit, not_before);
 
 			if (limit == (time_t)-1) {
-				saml_error(params, 0, 
+				saml_error(utils, 0, 
 					   "Invalid condition NotBefore %s",
 					   not_before);
 				return EINVAL;
 			}
 
 			if (now < limit - grace) {
-				saml_error(params, 0, 
+				saml_error(utils, 0, 
 					   "condition NotBefore %s, "
 					   "current time is %s",
 					   not_before, now_str);
@@ -217,19 +217,19 @@ saml_check_assertion_dates(ctx, params, lasso_assertion)
 
 		if ((not_after != NULL) && (*not_after != '\0')) {
 			limit = saml_get_date(not_after);
-			saml_log(params, LOG_DEBUG,
+			saml_log(utils, LOG_DEBUG,
 				 "SAML assertion condition "
 				 "NotOnOrAfter = %ld (%s)",
 				 limit, not_after);
 
 			if (limit == (time_t)-1) {
-				saml_error(params, 0, "Invalid condition "
+				saml_error(utils, 0, "Invalid condition "
 					   "NotOnOrAfter %s", not_after);
 				return EINVAL;
 			}
 
 			if (now > limit + grace) {
-				saml_error(params, 0, 
+				saml_error(utils, 0, 
 					   "condition NotOnOrAfter %s, "
 					   "current time is %s",
 					   not_after, now_str);
@@ -258,19 +258,19 @@ skip_assertion_timeframe_check:
 
 		if ((not_before != NULL) && (*not_before != '\0')) {
 			limit = saml_get_date(not_before);
-			saml_log(params, LOG_DEBUG,
+			saml_log(utils, LOG_DEBUG,
 				 "SAML assertion AuthnStatement "
 				 "AuthnInstant = %ld", limit);
 
 			if (limit == (time_t)-1) {
-				saml_error(params, 0, 
+				saml_error(utils, 0, 
 					   "invalid authn AuthnInstant %s",
 					   not_before);
 				return EINVAL;
 			}
 
 			if (now < limit - grace) {
-				saml_error(params, 0, 
+				saml_error(utils, 0, 
 					   "authn AuthnInstant %s, "
 					   "current time is %s",
 					   not_before, now_str);
@@ -280,19 +280,19 @@ skip_assertion_timeframe_check:
 
 		if ((not_after != NULL) && (*not_after != '\0')) {
 			limit = saml_get_date(not_after);
-			saml_log(params, LOG_DEBUG,
+			saml_log(utils, LOG_DEBUG,
 				 "SAML assertion AuthnStatement "
 				 "SessionNotOnOrAfter = %ld", limit);
 
 			if (limit == (time_t)-1) {
-				saml_error(params, 0, "invalid authn "
+				saml_error(utils, 0, "invalid authn "
 					   "SessionNotOnOrAfter %s",
 					   not_after);
 				return EINVAL;
 			}
 
 			if (now > limit + grace) {
-				saml_error(params, 0, 
+				saml_error(utils, 0, 
 					   "authn SessionNotOnOrAfter %s, "
 					   "current time is %s",
 					   not_after, now_str);
@@ -306,9 +306,9 @@ skip_session_timeframe_check:
 }
 
 static int
-saml_check_assertion_audience(ctx, params, lasso_assertion)
+saml_check_assertion_audience(ctx, utils, lasso_assertion)
 	saml_serv_context_t *ctx;
-	void *params;
+	void *utils;
 	LassoSaml2Assertion *lasso_assertion;
 {
 	GList *i;
@@ -318,12 +318,12 @@ saml_check_assertion_audience(ctx, params, lasso_assertion)
 		return 0;
 
 	if (lasso_assertion->Conditions == NULL) {
-		saml_error(params, 0, "No conditions in assertion");
+		saml_error(utils, 0, "No conditions in assertion");
 		return EACCES;
 	}
 
 	if (lasso_assertion->Conditions->AudienceRestriction == NULL) {
-		saml_error(params, 0, "No AudienceRestriction in assertion");
+		saml_error(utils, 0, "No AudienceRestriction in assertion");
 		return EACCES;
 	}
 
@@ -341,7 +341,7 @@ saml_check_assertion_audience(ctx, params, lasso_assertion)
 		if (ar->Audience == NULL)
 			continue;
 
-		saml_log(params, LOG_DEBUG, 
+		saml_log(utils, LOG_DEBUG, 
 			 "SAML assertion audience %s",
 			 ar->Audience);
 
@@ -349,20 +349,20 @@ saml_check_assertion_audience(ctx, params, lasso_assertion)
 			if (strcmp(sp->provider_id, ar->Audience) == 0)
 				return 0;
 
-		saml_log(params, LOG_ERR, 
+		saml_log(utils, LOG_ERR, 
 			 "Assertion audience \"%s\" untrusted",
 			 ar->Audience);
 	}
 
-	saml_error(params, 0, "Untrusted assertion audience");
+	saml_error(utils, 0, "Untrusted assertion audience");
 
 	return EACCES;
 }
 
 static int
-saml_check_assertion_signature(ctx, params, node, issuer, doc)
+saml_check_assertion_signature(ctx, utils, node, issuer, doc)
 	saml_serv_context_t *ctx;
-	void *params;
+	void *utils;
 	xmlNode *node;
 	char *issuer;
 	xmlDoc *doc;
@@ -373,7 +373,7 @@ saml_check_assertion_signature(ctx, params, node, issuer, doc)
 
 	if ((idp = g_hash_table_lookup(gctx->lasso_server->providers, 
 				       issuer)) == NULL) {
-		saml_error(params, 0, 
+		saml_error(utils, 0, 
 			   "SAML assertion issuer %s is unknown", issuer);
 		return EACCES;
 	}
@@ -396,15 +396,15 @@ saml_check_assertion_signature(ctx, params, node, issuer, doc)
 
 	} while ((node != node->parent) && (node != NULL));
 
-	saml_error(params, 0, "SAML assertion signature verification "
+	saml_error(utils, 0, "SAML assertion signature verification "
 		   "failure (error %d)", error);
 	return EACCES;
 }
 
 static int
-saml_check_one_assertion(ctx, params, userid, assertion, doc)
+saml_check_one_assertion(ctx, utils, userid, assertion, doc)
 	saml_serv_context_t *ctx;
-	void *params;
+	void *utils;
 	const char **userid;
 	xmlNodePtr assertion;
 	xmlDoc *doc;
@@ -416,50 +416,50 @@ saml_check_one_assertion(ctx, params, userid, assertion, doc)
 	int error;
 
 	if ((lasso_node = lasso_node_new_from_xmlNode(assertion)) == NULL) {
-		saml_error(params, 0, "lasso_node_new_from_xmlNode failed");
+		saml_error(utils, 0, "lasso_node_new_from_xmlNode failed");
 		error = EINVAL;
 		goto out;
 	}
 
 	lasso_assertion = LASSO_SAML2_ASSERTION(lasso_node);
 	if ((lasso_assertion == NULL) || (lasso_assertion->Issuer == NULL)) {
-		saml_error(params, 0, "SAML assertion contains no Issuer");
+		saml_error(utils, 0, "SAML assertion contains no Issuer");
 		error = EINVAL;
 		goto out;
 	}
 
 	issuer = LASSO_SAML2_NAME_ID(lasso_assertion->Issuer);
 	if ((issuer == NULL) || (issuer->content == NULL)) {
-		saml_error(params, 0, "SAML assertion contains no Issuer");
+		saml_error(utils, 0, "SAML assertion contains no Issuer");
 		error = EINVAL;
 		goto out;
 	}
 	
 	idp = issuer->content;
-	saml_log(params, LOG_DEBUG, "SAML assertion issuer is %s", idp);
+	saml_log(utils, LOG_DEBUG, "SAML assertion issuer is %s", idp);
 	
 	/* Check signature */
-	if ((error = saml_check_assertion_signature(ctx, params, assertion, 
+	if ((error = saml_check_assertion_signature(ctx, utils, assertion, 
 						    idp, doc)) != 0)
 		goto out;
 
 	/* Check SP */
-	if ((error = saml_check_assertion_audience(ctx, params, 
+	if ((error = saml_check_assertion_audience(ctx, utils, 
 						   lasso_assertion)) != 0)
 		goto out;
 
 	/* Check dates */
 	if ((error = saml_check_assertion_dates(ctx, 
-						params, lasso_assertion)) != 0)
+						utils, lasso_assertion)) != 0)
 		goto out;
 	
 	/* Check uid */
 	if ((error = saml_check_assertion_uid(ctx, 
-					      params, lasso_assertion)) != 0)
+					      utils, lasso_assertion)) != 0)
 		goto out;
 	
 	/* Save the IdP */
-	if ((error = saml_strdup(params, idp, &ctx->idp, NULL)) != 0) 
+	if ((error = saml_strdup(utils, idp, &ctx->idp, NULL)) != 0) 
 		goto out;
 
 	*userid = ctx->userid;
@@ -470,10 +470,11 @@ out:
 	return error;
 }
 
+
 int
-saml_check_all_assertions(ctx, params, userid, saml_msg, flags)
+saml_check_all_assertions(ctx, utils, userid, saml_msg, flags)
 	saml_serv_context_t *ctx;
-	void *params;
+	void *utils;
 	const char **userid;
 	char *saml_msg;
 	int flags;
@@ -488,7 +489,7 @@ saml_check_all_assertions(ctx, params, userid, saml_msg, flags)
 	int i;
 
 	if (saml_msg == NULL) {
-		saml_error(params, 0, "No SAML message");
+		saml_error(utils, 0, "No SAML message");
 		return saml_retcode(EINVAL);
 	}
 
@@ -506,7 +507,7 @@ saml_check_all_assertions(ctx, params, userid, saml_msg, flags)
 		saml_msg[len--] = '\0';
 
 	if (sasl_decode64(saml_msg, len, saml_msg, len, &len) != 0) {
-		saml_error(params, 0, "Cannot base64-decode message");
+		saml_error(utils, 0, "Cannot base64-decode message");
 		return saml_retcode(EINVAL);
 	}
 	saml_msg[len] = '\0';
@@ -523,33 +524,33 @@ saml_check_all_assertions(ctx, params, userid, saml_msg, flags)
 	}
 	
 	if ((doc = xmlParseDoc((const xmlChar *)saml_msg)) == NULL) {
-		saml_error(params, 0, "Cannot parse message");
+		saml_error(utils, 0, "Cannot parse message");
 		error = EINVAL;
 		goto out;
 	}
 
 	if ((xpctx = xmlXPathNewContext(doc)) == NULL) {
-		saml_error(params, 0, "xmlXPathNewContext failed");
+		saml_error(utils, 0, "xmlXPathNewContext failed");
 		error = ENOMEM;;
 		goto out;
 	}
 	
 	if (xmlXPathRegisterNs(xpctx, (const xmlChar *)"saml", 
 	   (const xmlChar *)"urn:oasis:names:tc:SAML:2.0:assertion") != 0) {
-		saml_error(params, 0, "wxmlXPathRegisterNs failed");
+		saml_error(utils, 0, "wxmlXPathRegisterNs failed");
 		error = ENOMEM;;
 		goto out;
 	}
 
 	if ((xpobj = xmlXPathEvalExpression((const xmlChar *)
 	    "//saml:Assertion[@ID]", xpctx)) == NULL) {
-		saml_error(params, 0, "xmlXPathEvalExpression failed");
+		saml_error(utils, 0, "xmlXPathEvalExpression failed");
 		error = EINVAL;
 		goto out;
 	}
 
 	if (xpobj->nodesetval->nodeNr == 0) {
-		saml_error(params, 0, "No assertion found");
+		saml_error(utils, 0, "No assertion found");
 		error = EINVAL;
 		goto out;
 	}
@@ -559,7 +560,7 @@ saml_check_all_assertions(ctx, params, userid, saml_msg, flags)
 		xmlNodePtr node;
 
 		node = xpobj->nodesetval->nodeTab[i];		
-		error = saml_check_one_assertion(ctx, params, userid, node, doc);
+		error = saml_check_one_assertion(ctx, utils, userid, node, doc);
 		if (error == 0)
 			goto out;
 	}
