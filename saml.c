@@ -1,4 +1,4 @@
-/* $Id: saml.c,v 1.15 2017/05/22 14:34:13 manu Exp $ */
+/* $Id: saml.c,v 1.16 2017/05/24 22:47:15 manu Exp $ */
 
 /*
  * Copyright (c) 2009-2010 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: saml.c,v 1.15 2017/05/22 14:34:13 manu Exp $");
+__RCSID("$Id: saml.c,v 1.16 2017/05/24 22:47:15 manu Exp $");
 #endif
 #endif
 
@@ -74,7 +74,7 @@ __RCSID("$Id: saml.c,v 1.15 2017/05/22 14:34:13 manu Exp $");
 static int
 saml_check_assertion_uid(ctx, utils, lasso_assertion)
 	saml_serv_context_t *ctx;
-	void *utils;
+	const void *utils;
 	LassoSaml2Assertion *lasso_assertion;
 {
 	saml_glob_context_t *gctx = ctx->glob_context;
@@ -169,7 +169,7 @@ saml_get_date(date)
 static int
 saml_check_assertion_dates(ctx, utils, lasso_assertion)
 	saml_serv_context_t *ctx;
-	void *utils;
+	const void *utils;
 	LassoSaml2Assertion *lasso_assertion;
 {
 	time_t limit, now;
@@ -308,7 +308,7 @@ skip_session_timeframe_check:
 static int
 saml_check_assertion_audience(ctx, utils, lasso_assertion)
 	saml_serv_context_t *ctx;
-	void *utils;
+	const void *utils;
 	LassoSaml2Assertion *lasso_assertion;
 {
 	GList *i;
@@ -362,7 +362,7 @@ saml_check_assertion_audience(ctx, utils, lasso_assertion)
 static int
 saml_check_assertion_signature(ctx, utils, node, issuer, doc)
 	saml_serv_context_t *ctx;
-	void *utils;
+	const void *utils;
 	xmlNode *node;
 	char *issuer;
 	xmlDoc *doc;
@@ -406,7 +406,7 @@ saml_check_assertion_signature(ctx, utils, node, issuer, doc)
 static int
 saml_check_one_assertion(ctx, utils, userid, assertion, doc)
 	saml_serv_context_t *ctx;
-	void *utils;
+	const void *utils;
 	const char **userid;
 	xmlNodePtr assertion;
 	xmlDoc *doc;
@@ -476,7 +476,7 @@ out:
 int
 saml_check_all_assertions(ctx, utils, userid, saml_msg, flags)
 	saml_serv_context_t *ctx;
-	void *utils;
+	const void *utils;
 	const char **userid;
 	char *saml_msg;
 	int flags;
