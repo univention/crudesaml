@@ -1,7 +1,7 @@
-# $Id: configure.ac,v 1.15 2017/05/20 02:35:26 manu Exp $ 
+# $Id: configure.ac,v 1.16 2017/05/22 14:40:20 manu Exp $ 
 
 AC_PREREQ([2.63])
-AC_INIT([crudesaml], [1.6], [manu@netbsd.org])
+AC_INIT([crudesaml], [1.7], [manu@netbsd.org])
 AC_CONFIG_SRCDIR([saml.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])

@@ -1,4 +1,4 @@
-/* $Id: saml.c,v 1.14 2017/05/18 15:29:04 manu Exp $ */
+/* $Id: saml.c,v 1.15 2017/05/22 14:34:13 manu Exp $ */
 
 /*
  * Copyright (c) 2009-2010 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: saml.c,v 1.14 2017/05/18 15:29:04 manu Exp $");
+__RCSID("$Id: saml.c,v 1.15 2017/05/22 14:34:13 manu Exp $");
 #endif
 #endif
 
@@ -394,7 +394,9 @@ saml_check_assertion_signature(ctx, utils, node, issuer, doc)
 			break;
 		node = node->parent;
 
-	} while ((node != node->parent) && (node != NULL));
+	} while ((node != node->parent) &&
+		 (node != NULL) &&
+		 (node->type == XML_ELEMENT_NODE));
 
 	saml_error(utils, 0, "SAML assertion signature verification "
 		   "failure (error %d)", error);
