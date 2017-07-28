@@ -34,22 +34,22 @@ pam_saml \- Crude SAML assertion verification module for PAM
 .SH DESCRIPTION
 The
 .B pam_saml
-is a Plugable Authentication Module (PAM) which will validate
-authentication based on a Security Assertion Markup Language (SAML)
+is a Plugable Authentication Module (PAM) which will validate 
+authentication based on a Security Assertion Markup Language (SAML) 
 authentication assertion. This allows a web server to use the
 SAML assertion as some kind of ticket for getting authenticated access
 to some other resource which is protected by PAM.
 .LP
-Of course this authentication scheme is rather clumsy, as the whole
+Of course this authentication scheme is rather clumsy, as the whole 
 security collapse if any valid SAML assertion is known to an attacker.
-Encrypted communications between client and web server are advised, and
+Encrypted communications between client and web server are advised, and 
 .B pam_saml
 also attempts to thwart the most obvious replay attacks, by performing
 a few checks on the data available in the SAML assertion. The verification
 performed are:
 .LP
 .TP
-Identity provider (IdP) signature validity. This prevents an attacker
+Identity provider (IdP) signature validity. This prevents an attacker 
 from forging a SAML assertion.
 .TP
 Date validity, with a grace period for gracefully handling clock skews.
@@ -57,37 +57,38 @@ This prevents replays using a very old assertion that has been disclosed.
 .TP
 Optionnaly, the IdP-specified assertion audience can be restricted to a
 set of Service Providers (SP). This prevents an attacker from using an
-assertion collected on an other weak SP that does not use encrypted
+assertion collected on an other weak SP that does not use encrypted 
 communications with the client.
 .SH PAM CONFIGURATION
-Configuration is done in
-.B /etc/pam.conf
-or
-.BR /etc/pam.d .
-The following options are available:
+Configuration is done in /etc/pam.conf or /etc/pam.d. The following options
+are available:
 .LP
-.TP
-.BI userid= <uid_attribute>
+.TP 
+.B
+userid=<uid_attribute>
 Check the value of the
 .B uid_attribute
 attribute in the SAML assertion against the authenticating user login.
-Default is
+Default is 
 .B uid
 .TP
-.BI grace= <time>
-When checking assertion time validity, use a
+.B 
+grace=<time>
+When checking assertion time validity, use a 
 .B time
 grace delay (in seconds) to work around minor clock skews. Default it
 .B 600\fRs.
 .TP
-.BR saml_check_assertion_timeframe= { 0 | 1 }
+.B
+saml_check_assertion_timeframe={0|1}
 When checking assertion time validity, check
-.B Assertion/Conditions@NotOnOrAfter
+.B Assertion/Conditions@NotOnOrAfter  
 (Default is to check it).
 .TP
-.BR saml_check_session_timeframe= { 0 | 1 }
+.B
+saml_check_session_timeframe={0|1}
 When checking assertion time validity, check
-.B Assertion/AuthnStatement@SessionNotOnOrAfter
+.B Assertion/AuthnStatement@SessionNotOnOrAfter  
 (Default is to check it).
 .TP
 .B 
@@ -97,7 +98,8 @@ Load SAML metadata for a trusted IdP from
 This option can be used multiple times, to use several IdP. This option
 is mandatory, otherwise no assertion will be validated at all.
 .TP
-.BI cacert= <path>
+.B
+cacert=<path>
 Use the certificates from
 .B path
 as the certificate authorities. This option cannot be used multiple times,
@@ -110,7 +112,8 @@ In order to be validated, the assertion must have its audience set to
 This is optional and can be specified multiple times. If the option is
 not specified, the audience is not checked.
 .TP
-.BI only_from= <hosts>
+.B
+only_from=<hosts>
 This module will only perform its checks for a remote host present in the
 comma-separated lists specified in
 .B hosts\fR.
