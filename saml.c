@@ -68,6 +68,8 @@ __RCSID("$Id: saml.c,v 1.16 2017/05/24 22:47:15 manu Exp $");
 #include <lasso/xml/saml-2.0/saml2_attribute.h>
 #include <lasso/xml/saml-2.0/saml2_attribute_value.h>
 #include <lasso/xml/misc_text_node.h>
+/* lasso/id-ff/providerprivate.h */
+int lasso_provider_verify_saml_signature(LassoProvider *provider, xmlNode *signed_node, xmlDoc *doc);
 
 #include "saml.h"
 
