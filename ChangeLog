@@ -1,3 +1,6 @@
+crusdesaml-1.9		2017-08-13
+Fix crash on PAM intialization failure (Florian Best)
+
 crusdesaml-1.8		2017-05-26
 Fix crash introduced server side in 1.6 for saml_log()
 
