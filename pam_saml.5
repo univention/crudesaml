@@ -1,5 +1,5 @@
 .\"
-.\" $Id: pam_saml.5,v 1.4 2010/06/05 15:14:41 manu Exp $
+.\" $Id: pam_saml.5,v 1.6 2015/09/01 11:35:43 manu Exp $
 .\"
 .\" Copyright (c) 2009 Emmanuel Dreyfus
 .\" All rights reserved.
@@ -78,7 +78,7 @@ Default is
 When checking assertion time validity, use a
 .B time
 grace delay (in seconds) to work around minor clock skews. Default it
-.BR 600 s.
+.B 600\fRs.
 .TP
 .BR saml_check_assertion_timeframe= { 0 | 1 }
 When checking assertion time validity, check
@@ -90,9 +90,10 @@ When checking assertion time validity, check
 .B Assertion/AuthnStatement@SessionNotOnOrAfter
 (Default is to check it).
 .TP
-.BI idp= <path>
-Load SAML metadata for a trusted IdP from
-.BR path .
+.B 
+idp=<path>
+Load SAML metadata for a trusted IdP from 
+.B path\fR.
 This option can be used multiple times, to use several IdP. This option
 is mandatory, otherwise no assertion will be validated at all.
 .TP
@@ -102,16 +103,17 @@ Use the certificates from
 as the certificate authorities. This option cannot be used multiple times,
 but the certificate file can contain multiple certificates.
 .TP
-.BI trusted_sp= <provider_id>
-In order to be validated, the assertion must have its audience set to
-.BR provider_id .
+.B
+trusted_sp=<provider_id>
+In order to be validated, the assertion must have its audience set to 
+.B provider_id\fR.
 This is optional and can be specified multiple times. If the option is
 not specified, the audience is not checked.
 .TP
 .BI only_from= <hosts>
 This module will only perform its checks for a remote host present in the
 comma-separated lists specified in
-.BR hosts .
+.B hosts\fR.
 If this option is not specified, the module is enabled for any host.
 .SH AUTHOR
 Emmanuel Dreyfus <manu@netbsd.org>
@@ -119,5 +121,10 @@ Emmanuel Dreyfus <manu@netbsd.org>
 .TP
 /etc/pam.conf
 .SH SEE ALSO
-.BR pam (8),
-.BR cy2_saml (5).
+.BR pam (8)\fR,
+.BR cy2_saml (5)
+
+
+
+
+

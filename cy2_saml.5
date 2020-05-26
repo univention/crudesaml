@@ -1,5 +1,5 @@
 .\"
-.\" $Id: cy2_saml.5,v 1.4 2011/04/03 05:22:45 manu Exp $
+.\" $Id: cy2_saml.5,v 1.6 2015/09/01 11:35:43 manu Exp $
 .\"
 .\" Copyright (c) 2009,2011 Emmanuel Dreyfus
 .\" All rights reserved.
@@ -68,7 +68,7 @@ options are available:
 When decoding the SAML assertion, try to uncompress it (default is not
 to try). This is only useful if the client is not the SASL plugin.
 .TP
-.BI saml_userid= <uid_attribute>
+.B saml_userid=<uid_attribute>
 Check the value of the
 .B uid_attribute
 attribute in the SAML assertion against the authenticating user login.
@@ -79,7 +79,7 @@ Default is
 When checking assertion time validity, use a
 .B time
 grace delay (in seconds) to work around minor clock skews. Default it
-.BR 600 s.
+.B 600\fRs.
 .TP
 .BR saml_check_assertion_timeframe= { 0 | 1 }
 When checking assertion time validity, check
@@ -91,15 +91,16 @@ When checking assertion time validity, check
 .B Assertion/AuthnStatement@SessionNotOnOrAfter
 (Default is to check it).
 .TP
-.BI saml_idp <number> = <path>
-Load SAML metadata for a trusted IdP from
-.BR path .
-This option can be used multiple times with
+.B
+saml_idp<number>=<path>
+Load SAML metadata for a trusted IdP from 
+.B path\fR.
+This option can be used multiple times with 
 .B number
-being a unique serial number starting at 0 (ie: use
-.BR saml_idp0 ,
-.BR saml_idp1 ,
-.BR saml_idp2 ,
+being a unique serial number starting at 0 (ie: use 
+.B saml_idp0\fR,
+.B saml_idp1\fR,
+.B saml_idp2\fR,
 etc), to use several IdP. This option
 is mandatory, otherwise no assertion will be validated at all.
 .TP
@@ -109,13 +110,19 @@ Use the certificates from
 as the certificate authorities. This option cannot be used multiple times,
 but the certificate file can contain multiple certificates.
 .TP
-.BI saml_trusted_sp= <provider_id>
-In order to be validated, the assertion must have its audience set to
-.BR provider_id .
+.B
+saml_trusted_sp=<provider_id>
+In order to be validated, the assertion must have its audience set to 
+.B provider_id\fR.
 This is optional and can be specified multiple times. If the option is
 not specified, the audience is not checked.
 .SH AUTHOR
 Emmanuel Dreyfus <manu@netbsd.org>
 .SH SEE ALSO
-.BR sasl (8),
-.BR pam_saml (5).
+.BR sasl (8)\fR,
+.BR pam_saml (5)
+
+
+
+
+

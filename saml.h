@@ -1,4 +1,4 @@
-/* $Id: saml.h,v 1.5 2011/04/03 05:22:45 manu Exp $ */
+/* $Id: saml.h,v 1.6 2017/05/18 15:29:04 manu Exp $ */
 /*
  * Copyright (c) 2009,2011 Emmanuel Dreyfus
  * All rights reserved.
@@ -56,9 +56,9 @@ typedef struct {
         char *idp;
 } saml_serv_context_t;
 
-void saml_log(void *, int, const char *, ...);
-void saml_error(void *, int, const char *, ...);
-int saml_strdup(void *, const char *, char **, int *);
+void saml_log(const void *, int, const char *, ...);
+void saml_error(const void *, int, const char *, ...);
+int saml_strdup(const void *, const char *, char **, int *);
 int saml_retcode(int);
 
 int saml_check_all_assertions(saml_serv_context_t *, 
