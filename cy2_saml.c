@@ -1,4 +1,4 @@
-/* $Id: cy2_saml.c,v 1.11 2017/05/20 02:27:58 manu Exp $ */
+/* $Id: cy2_saml.c,v 1.12 2017/05/24 22:47:15 manu Exp $ */
 
 /*
  * Copyright (c) 2009,2011 Emmanuel Dreyfus
@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #ifdef __RCSID
-__RCSID("$Id: cy2_saml.c,v 1.11 2017/05/20 02:27:58 manu Exp $");
+__RCSID("$Id: cy2_saml.c,v 1.12 2017/05/24 22:47:15 manu Exp $");
 #endif
 #endif
 
@@ -260,7 +260,7 @@ saml_server_mech_step(conn_context, params, clientin, clientinlen,
 	 * Validate SAML assertion, retreive authid
 	 */
         flags = (gctx->flags & SGC_COMPRESSED_ASSERTION) ? MAYBE_COMPRESS : 0;
-	if ((error = saml_check_all_assertions(ctx, params, 
+	if ((error = saml_check_all_assertions(ctx, params->utils, 
 	    &userid, saml_msg, flags)) != SASL_OK)
 		goto out;
 
