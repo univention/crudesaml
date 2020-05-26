@@ -1,3 +1,6 @@
+crusdesaml-1.7		2017-05-22
+Only iterate on XML_ELEMENT_NODE nodes
+
 crusdesaml-1.6		2017-05-20
 Typos in man pages (Florian Best)
 Don't log the password length if it is too small (Florian Best)
