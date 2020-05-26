@@ -1,4 +1,4 @@
-/* $Id: saml.h,v 1.6 2017/05/18 15:29:04 manu Exp $ */
+/* $Id: saml.h,v 1.7 2017/05/24 22:47:15 manu Exp $ */
 /*
  * Copyright (c) 2009,2011 Emmanuel Dreyfus
  * All rights reserved.
@@ -62,4 +62,4 @@ int saml_strdup(const void *, const char *, char **, int *);
 int saml_retcode(int);
 
 int saml_check_all_assertions(saml_serv_context_t *, 
-			      void *, const char **, char *, int);
+			      const void *, const char **, char *, int);
