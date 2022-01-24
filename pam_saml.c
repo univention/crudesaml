@@ -153,7 +153,6 @@ gctx_cleanup(pamh, data, error)
 			gctx->lasso_server = NULL;
 		}
 		
-		lasso_shutdown();
 		free(gctx);
 		gctx = NULL;
 	}
@@ -171,6 +170,7 @@ pam_global_context_init(pamh, ac, av)
 	int i;
 	const char *cacert = NULL;
 	const char *uid_attr = "uid";
+	static int lasso_is_initialized = 0;
 
 
 	if (pam_get_data(pamh, GCTX_DATA, &data) == PAM_SUCCESS) {
@@ -182,9 +182,11 @@ pam_global_context_init(pamh, ac, av)
 	/*
 	 * Initialize lasso
 	 */
-	if (lasso_init() != 0) {
+	if (!lasso_is_initialized && lasso_init() != 0) {
 		syslog(LOG_ERR, "lasso_init() failed");
 		return NULL;
+	} else {
+		lasso_is_initialized = 1;
 	}
 
 	if ((gctx = malloc(sizeof(*gctx))) == NULL) {

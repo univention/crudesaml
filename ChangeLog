@@ -1,3 +1,6 @@
+crusdesaml-1.10		2021-06-06
+Shutdown/reinit lasso in a process liftime is not supported (Florian Best)
+
 crusdesaml-1.9		2017-08-13
 Fix crash on PAM intialization failure (Florian Best)
 
