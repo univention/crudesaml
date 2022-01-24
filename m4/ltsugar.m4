@@ -1,0 +1,1 @@
+/usr/pkg/share/aclocal/ltsugar.m4

@@ -58,7 +58,6 @@ __RCSID("$Id: cy2_saml.c,v 1.12 2017/05/24 22:47:15 manu Exp $");
 
 #include "plugin_common.h"
 
-
 typedef struct {
 	char *out;
 	unsigned int len;
@@ -348,8 +347,6 @@ saml_server_mech_free(glob_context, utils)
 		gctx->lasso_server = NULL;
 	}
 
-	lasso_shutdown();
-
 	/* 
 	 * Do not free (saml_glob_context_t *)glob_context, it is static!
 	 */
@@ -391,6 +388,7 @@ sasl_server_plug_init(utils, maxvers, outvers, pluglist, plugcount)
 	const char *flag;
 	char propname[1024];
 	int propnum = 0;
+	static int lasso_is_initialized = 0;
 
 	if (maxvers < SASL_SERVER_PLUG_VERSION) {
 		utils->seterror(utils->conn, 0, "SAML version mismatch");
@@ -401,9 +399,11 @@ sasl_server_plug_init(utils, maxvers, outvers, pluglist, plugcount)
 	*pluglist = &saml_server_plugin;
 	*plugcount = 1;
 
-	if (lasso_init() != 0) {
+	if (!lasso_is_initialized && lasso_init() != 0) {
 		utils->seterror(utils->conn, 0, "lasso_init() failed");
 		return SASL_FAIL;
+	} else {
+		lasso_is_initialized = 1;
 	}
 
 	gctx = (saml_glob_context_t *)saml_server_plugin.glob_context;
